@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Week 01 — Video Game Studies</title>
+    <style>
+      /* Bio slide (slide 2): left-aligned text column + right photo panel.
+         Page-local since it's specific content, not a shared pattern. */
+      /* Grid, not flex: a single auto-height row means the row's height is
+         set by .bio-text's natural content height (title through
+         "Educator") -- .bio-photo has no content of its own, so its
+         default align-self: stretch fills exactly that row, top to
+         bottom. align-content: center then centers that one row within
+         the slide's full height. */
+      .bio-slide {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        align-content: center;
+        gap: 2em;
+        /* Trimmed by the status bar's height so the centered row sits in
+           the space actually visible above the bar, not the full slide. */
+        height: calc(100% - var(--bottom-bar-height));
+        box-sizing: border-box;
+      }
+      .bio-text {
+        text-align: left;
+      }
+      /* .reveal-prefixed to beat reveal's own h2 font-size rule at equal
+         specificity -- this inline <style> block is parsed before reveal's
+         CSS is injected, so plain `.bio-text h2` would lose that fight. */
+      .reveal .bio-text h2 {
+        margin: 0 0 0.4em;
+        font-size: 1.15em;
+        white-space: nowrap;
+      }
+      .bio-text p {
+        margin: 0.3em 0;
+        font-size: 1.2em;
+      }
+      .bio-photo {
+        background-image: url('./assets/02/SelfPortrait_abj.gif');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      /* GIF grid slide (slide 3): full-bleed, centered 3x2 mosaic of fixed
+         280px squares -- same !important reasoning as .impact-slide,
+         overriding reveal's own inline position/width/height styles on
+         <section>. Fixed px (not fr/%) is what keeps cells perfectly
+         square regardless of the slide's own aspect ratio; reveal scales
+         the whole deck via transform afterward, so authoring in px here
+         is the normal/recommended approach. Cell images/URLs are assigned
+         and randomly swapped by main.js. */
+      .gif-grid-slide {
+        position: absolute !important;
+        /* Bottom trimmed by the status bar's height (see .impact-inner in
+           shared/theme.css for the same reasoning) so the grid centers in
+           the space actually visible above the bar. */
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .gif-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 280px);
+        grid-template-rows: repeat(2, 280px);
+        gap: 16px;
+      }
+      .gif-cell {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+
+        <!-- Title slide: proves the .impact-slide / .impact-inner pattern -->
+        <section
+          class="impact-slide"
+          data-movement="1"
+          data-movement-name="Opening"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight" style="--divider-color: var(--accent-cyan);">
+              Video Game Studies
+            </h1>
+          </div>
+        </section>
+
+        <section data-movement="1" data-movement-name="Opening" class="bio-slide">
+          <div class="bio-text">
+            <h2>Amir B. Jahanbin</h2>
+            <p><span class="title-highlight" style="--divider-color: var(--accent-magenta);">Animator</span></p>
+            <p><span class="title-highlight" style="--divider-color: var(--accent-cyan);">Illustrator</span></p>
+            <p><span class="title-highlight" style="--divider-color: var(--accent-lime);">Game Designer</span></p>
+            <p><span class="title-highlight" style="--divider-color: var(--accent-orange);">Educator</span></p>
+          </div>
+          <div class="bio-photo"></div>
+        </section>
+
+        <section data-movement="1" data-movement-name="Opening" class="gif-grid-slide">
+          <div class="gif-grid">
+            <div class="gif-cell"></div>
+            <div class="gif-cell"></div>
+            <div class="gif-cell"></div>
+            <div class="gif-cell"></div>
+            <div class="gif-cell"></div>
+            <div class="gif-cell"></div>
+          </div>
+        </section>
+
+        <!-- Video embed: bare <section> with data-background-iframe +
+             data-background-interactive. The bottom-bar iframe height fix
+             in shared/theme.css handles keeping this clear of the bar. -->
+        <section
+          data-movement="1"
+          data-movement-name="Opening"
+          data-background-iframe="https://www.youtube.com/embed/yn4rM4G4SFQ?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed: same settings as slide 4 -->
+        <section
+          data-movement="1"
+          data-movement-name="Opening"
+          data-background-iframe="https://www.youtube.com/embed/12SNTNPU8ww?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed: same settings as slides 4-5 -->
+        <section
+          data-movement="1"
+          data-movement-name="Opening"
+          data-background-iframe="https://www.youtube.com/embed/9e2EAB61-Mo?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <img src="./assets/07/WholeGang.png" alt="" style="max-width: 100%; max-height: 100%;" />
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <img src="./assets/08/artdirection.png" alt="" style="max-width: 100%; max-height: 100%;" />
+          </div>
+        </section>
+
+        <!-- Video embed: same settings as slides 4-6 -->
+        <section
+          data-movement="1"
+          data-movement-name="Opening"
+          data-background-iframe="https://www.youtube.com/embed/YRwUU5MoCnI?autoplay=1"
+          data-background-interactive
+        ></section>
+
+      </div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

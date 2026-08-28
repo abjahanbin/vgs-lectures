@@ -1,0 +1,342 @@
+/* shared/theme.css
+ * Shared visual system for every week's deck. Built on top of reveal.js's
+ * 'black' theme (import reveal.js/dist/theme/black.css before this file).
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Rajdhani:wght@500;600;700&display=swap');
+
+/* ---------------------------------------------------------------------- */
+/* Palette                                                                 */
+/* ---------------------------------------------------------------------- */
+
+:root {
+  --bg-color: #0a0a0f;
+  --fg-color: #e8e8ec;
+  --fg-heading: #f5f5f7;
+
+  /* Arcade/CRT neon accents. Used for movement-color cycling, animated
+     backgrounds, and the utility classes below. */
+  --accent-magenta: #ff2bd6;
+  --accent-cyan: #00e5ff;
+  --accent-lime: #c6ff33;
+  --accent-orange: #ff8c1a;
+  --accent-violet: #9d4bff;
+
+  /* Neutral: UI chrome only (bottom bar, placeholder borders). Deliberately
+     kept out of the animated-background rotation in reveal-init.js -- a
+     muted color there reads as a dead/broken cell. */
+  --accent-neutral: #7c8798;
+
+  /* Referenced by the iframe-sizing fix below so other rules can share it. */
+  --bottom-bar-height: 50px;
+}
+
+.text-magenta { color: var(--accent-magenta); }
+.text-cyan { color: var(--accent-cyan); }
+.text-lime { color: var(--accent-lime); }
+.text-orange { color: var(--accent-orange); }
+.text-violet { color: var(--accent-violet); }
+.text-neutral { color: var(--accent-neutral); }
+
+.bg-magenta { background-color: var(--accent-magenta); }
+.bg-cyan { background-color: var(--accent-cyan); }
+.bg-lime { background-color: var(--accent-lime); }
+.bg-orange { background-color: var(--accent-orange); }
+.bg-violet { background-color: var(--accent-violet); }
+.bg-neutral { background-color: var(--accent-neutral); }
+
+/* ---------------------------------------------------------------------- */
+/* Base                                                                    */
+/* ---------------------------------------------------------------------- */
+
+body {
+  background: var(--bg-color);
+}
+
+.reveal {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.reveal .slides {
+  color: var(--fg-color);
+  text-align: left;
+}
+
+/* Match reveal's own selector prefix (.reveal h1/h2/h3) so this wins on
+   specificity rather than needing !important -- reveal's black theme
+   already sets h1-h3 color with the same specificity, and a lower-
+   specificity utility class would silently lose to it. */
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+  font-family: 'Russo One', sans-serif;
+  color: var(--fg-heading);
+  text-transform: none;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Impact slide: reusable full-bleed centered pattern                     */
+/* ---------------------------------------------------------------------- */
+
+/* reveal.js sets inline position/width/height styles on <section> for its
+   own slide-transition math -- !important is required here to override
+   those inline styles rather than lose to them. */
+.reveal .slides section.impact-slide {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.impact-inner {
+  position: absolute;
+  /* Bottom trimmed by the status bar's height rather than a plain inset:0
+     -- the bar visually covers that strip, so centering within the full
+     slide height would read as sitting a bit low. Shrinking the box first
+     centers content within the space that's actually visible above it. */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--bottom-bar-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 2em;
+  box-sizing: border-box;
+}
+
+/* Same specificity as reveal's `.reveal h1` font-size rule -- wins on
+   cascade order (theme.css loads last) rather than needing !important. */
+.impact-slide h1 {
+  font-size: 1.5em;
+  white-space: nowrap;
+  animation: title-highlight-cycle 15s steps(1, end) infinite;
+}
+
+/* Cycles the title-slide heading's highlighter fill through the theme's
+   5 accents, one every 3s. A CSS animation overrides the static
+   `background` set by .title-highlight regardless of selector specificity,
+   so no extra specificity juggling is needed here. */
+@keyframes title-highlight-cycle {
+  0%, 19.99% { background-color: var(--accent-magenta); }
+  20%, 39.99% { background-color: var(--accent-cyan); }
+  40%, 59.99% { background-color: var(--accent-lime); }
+  60%, 79.99% { background-color: var(--accent-orange); }
+  80%, 100% { background-color: var(--accent-violet); }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Title highlight: "highlighter" rectangle behind a heading               */
+/* ---------------------------------------------------------------------- */
+
+/* Opt-in, not divider-specific -- usable on any heading. Set
+   --divider-color inline per-slide/per-heading to choose the color:
+     <h2 class="title-highlight" style="--divider-color: var(--accent-cyan);"> */
+.title-highlight {
+  display: inline-block;
+  background: var(--divider-color, var(--accent-cyan));
+  color: #0a0a0f;
+  padding: 0.1em 0.4em;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Navigation controls: top-right instead of reveal's default bottom-right */
+/* ---------------------------------------------------------------------- */
+
+/* !important here (rather than relying on cascade order alone) so this
+   can't lose to reveal's own positioning regardless of how/where it gets
+   injected; z-index bumped above .bottom-status-bar defensively so the
+   controls can never end up stacked underneath other UI. */
+.reveal .controls {
+  top: var(--r-controls-spacing) !important;
+  bottom: auto !important;
+  right: var(--r-controls-spacing) !important;
+  left: auto !important;
+  z-index: 10001 !important;
+}
+
+/* Repositioning the container alone isn't enough: reveal's own CSS
+   positions each arrow *button* with a `bottom: Ne­m` offset baked in,
+   measured up from the container's bottom edge -- which assumes the
+   container sits at the screen's bottom with room to spare above it.
+   With the container now at the top, those same offsets pushed every
+   button upward off the top of the screen entirely (verified: computed
+   rect had negative y). Each button's vertical anchor is overridden here
+   to hang downward from the container instead, with up/down's relative
+   offsets swapped so "up" still renders above "down" in the cluster. */
+.reveal .controls .navigate-left {
+  top: 3.2em !important;
+  bottom: auto !important;
+}
+.reveal .controls .navigate-right {
+  top: 3.2em !important;
+  bottom: auto !important;
+}
+.reveal .controls .navigate-up {
+  top: 0 !important;
+  bottom: auto !important;
+}
+.reveal .controls .navigate-down {
+  top: 6.4em !important;
+  bottom: auto !important;
+  padding-bottom: 0 !important;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Bottom status bar                                                       */
+/* ---------------------------------------------------------------------- */
+
+.bottom-status-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--bottom-bar-height);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0 1em;
+  background: rgba(0, 0, 0, 0.85);
+  border-top: 1px solid var(--accent-neutral);
+  color: var(--fg-color);
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.75rem;
+  z-index: 10000;
+}
+
+.status-progress {
+  position: relative;
+  flex: 1 1 auto;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.status-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  background: #ffffff;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+.status-count {
+  flex: 0 0 auto;
+  color: var(--accent-neutral);
+  min-width: 4.5em;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Background video/iframe embeds                                         */
+/* ---------------------------------------------------------------------- */
+
+/* reveal.js sizes data-background-iframe embeds to height:100% by default,
+   which puts their bottom edge directly behind the bottom bar. border:0
+   matters too -- the iframe's default UA-stylesheet border adds on top of
+   this calc() height (content-box sizing), reintroducing a few px of
+   overlap if left in place. Covers every video/embed slide automatically. */
+.reveal .slide-background-content iframe {
+  height: calc(100% - var(--bottom-bar-height)) !important;
+  border: 0 !important;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Animated-background canvases (see reveal-init.js + shared/bg-*.js)     */
+/* ---------------------------------------------------------------------- */
+
+.bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reusable content patterns (documented here, start empty of content)    */
+/* ---------------------------------------------------------------------- */
+
+/* Photo + caption:
+     <figure class="photo-caption">
+       <img src="..." alt="...">
+       <figcaption>Caption text, left-aligned.</figcaption>
+     </figure> */
+.photo-caption {
+  display: block;
+  margin: 0;
+}
+
+.photo-caption img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.photo-caption figcaption {
+  text-align: left;
+  font-size: 0.7em;
+  color: var(--accent-neutral);
+  margin-top: 0.4em;
+}
+
+/* Media pair/trio: 2-3 items side by side, uncropped, each keeping its own
+   real aspect ratio (no forced object-fit: cover).
+     <div class="media-pair">
+       <img src="..." alt="...">
+       <img src="..." alt="...">
+     </div>
+   For an animated GIF, use a background-image div instead of <img> --
+   Chromium has a real bug where object-fit: cover on an <img> correctly
+   positions a GIF's first frame but drifts on later delta-encoded frames:
+     <div class="media-pair">
+       <div style="background-image: url(...); aspect-ratio: 16/9;"></div>
+     </div> */
+.media-pair,
+.media-trio {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1em;
+}
+
+.media-pair > *,
+.media-trio > * {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Quote block: highlighter-marker background on the quoted text.
+   box-decoration-break: clone makes a background on wrapped inline text
+   get its own box per line, instead of one background spanning oddly
+   across line breaks.
+     <p class="quote-block">
+       <span class="quote-highlight">"...quoted text, possibly
+       wrapping across multiple lines..."</span> -- Attribution
+     </p> */
+.quote-block {
+  font-style: italic;
+}
+
+.quote-block .quote-highlight {
+  background: var(--divider-color, var(--accent-lime));
+  color: #0a0a0f;
+  padding: 0.05em 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
