@@ -199,6 +199,49 @@
         margin: 0 !important;
         object-fit: cover;
       }
+
+      /* Slides 19-20: 3 images side by side, all sharing a fixed height
+         (width auto-scales per image to preserve its own aspect ratio,
+         unlike .media-pair/.media-trio which divide width evenly instead
+         and let height follow). Full-bleed (not .impact-slide/.impact-inner)
+         to reclaim that pattern's 2em side padding -- needed headroom to
+         make the images bigger while still fitting the widest row
+         (slide 19's ratios sum to 3.624, so it's the tighter fit of the
+         two) within the slide's width. Same reveal-img reset as the other
+         grids on this page (see .media-grid-2x2 img above). */
+      .photo-row-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75em;
+        padding: 0 1em;
+        box-sizing: border-box;
+      }
+      .equal-height-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .equal-height-row img {
+        height: 245px;
+        width: auto;
+        display: block;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+      }
+      .row-caption {
+        margin: 0;
+        font-size: 0.9em;
+        color: var(--accent-neutral);
+      }
     </style>
   </head>
   <body>
@@ -359,6 +402,133 @@
               <img src="./assets/17/homoludensstudyo1950huiz_0013.jpg" alt="" />
               <img src="./assets/17/homoludensstudyo1950huiz_0019.jpg" alt="" />
             </div>
+          </div>
+        </section>
+
+        <!-- Blank -- build this slide out -->
+        <section></section>
+
+        <section data-movement="1" data-movement-name="Opening" class="photo-row-slide">
+          <div class="equal-height-row">
+            <img src="./assets/19/140619-coney-island-02.jpg" alt="" />
+            <img src="./assets/19/140619-coney-island-16-1024x745.jpg" alt="" />
+            <img src="./assets/19/luna_park_and_the_amusement_park_boom_1050x700.jpg" alt="" />
+          </div>
+          <p class="row-caption">Coney Island, New York (1945)</p>
+        </section>
+
+        <section data-movement="1" data-movement-name="Opening" class="photo-row-slide">
+          <div class="equal-height-row">
+            <img src="./assets/20/140619-coney-island-06.jpg" alt="" />
+            <img src="./assets/20/140619-coney-island-13-1024x829.jpg" alt="" />
+            <img src="./assets/20/140619-coney-island-14.jpg" alt="" />
+          </div>
+          <p class="row-caption">Coney Island, New York (1945)</p>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/21/Pieter_Bruegel_de_Oude_-_De_val_van_Icarus.jpg" alt="De val van Icarus painting" style="max-height: 100%;" />
+              <figcaption>De val van Icarus - Pieter Bruegel de Oude (1560)</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <!-- Video embed: same settings as slides 4-6, 9, 11; starts at 24s -->
+        <section
+          data-movement="1"
+          data-movement-name="Opening"
+          data-background-iframe="https://www.youtube.com/embed/mU3nNT4rcFg?autoplay=1&start=24"
+          data-background-interactive
+        ></section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/23/journey-game-screenshot-10-b.jpg" alt="Journey game screenshot" style="max-height: 100%;" />
+              <figcaption>Journey - thatgamecompany (2012)</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <img src="./assets/24/flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg" alt="" style="max-width: 100%; max-height: 100%;" />
+          </div>
+        </section>
+
+        <!-- Video embed: same settings as slides 4-6, 9, 11, 22; starts at 239s -->
+        <section
+          data-movement="1"
+          data-movement-name="Opening"
+          data-background-iframe="https://www.youtube.com/embed/BMQfCMIk4F0?autoplay=1&start=239"
+          data-background-interactive
+        ></section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/26/fb749718aaf42504e16a33ceefb62f3c.jpg" alt="Proteus game screenshot" style="max-height: 100%;" />
+              <figcaption>Proteus - Ed Key &amp; David Kanaga (2013)</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <!-- Blank -- build this slide out -->
+        <section></section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/28/245_1.avif" alt="" style="max-height: 100%;" />
+              <figcaption>Step 1</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/29/245_2.avif" alt="" style="max-height: 100%;" />
+              <figcaption>Step 2</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/30/245_3.avif" alt="" style="max-height: 100%;" />
+              <figcaption>Step 3</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/31/245_4.avif" alt="" style="max-height: 100%;" />
+              <figcaption>Step 4</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/32/245_5.avif" alt="" style="max-height: 100%;" />
+              <figcaption>Step 5</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/33/245_6.avif" alt="" style="max-height: 100%;" />
+              <figcaption>Step 6</figcaption>
+            </figure>
           </div>
         </section>
 
