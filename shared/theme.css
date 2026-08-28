@@ -321,6 +321,18 @@ body {
   background-position: center;
 }
 
+/* reveal's base theme sets `.reveal img { max-width:95%; max-height:95%;
+   margin:20px 0; }` at equal-or-higher specificity than the rule above,
+   which would otherwise win and shrink/offset <img> children here.
+   Matching selector shape (one class + child combinator + type) ties
+   reveal's specificity, and this file loads after reveal's CSS. */
+.media-pair > img,
+.media-trio > img {
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+}
+
 /* Quote block: highlighter-marker background on the quoted text.
    box-decoration-break: clone makes a background on wrapped inline text
    get its own box per line, instead of one background spanning oddly

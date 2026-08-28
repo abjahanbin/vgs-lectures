@@ -77,6 +77,128 @@
         background-position: center;
         background-repeat: no-repeat;
       }
+
+      /* Media grid slide (slide 12): 3x2 grid, every cell cropped to the
+         GIFs' 16:9 proportions (object-fit/background-size: cover) so all
+         six cells -- images and GIFs alike -- come out identically sized
+         and evenly spaced regardless of each source file's own ratio. */
+      .media-grid-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .media-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 300px);
+        grid-auto-rows: 168.75px;
+        gap: 16px;
+      }
+      .media-grid img,
+      .media-grid .media-cell {
+        width: 300px;
+        height: 168.75px;
+        display: block;
+      }
+      /* reveal's base theme sets `.reveal img { max-width:95%; max-height:
+         95%; margin: 20px 0; }` -- that alone was capping/offsetting the
+         two <img> cells relative to the four .media-cell divs (not <img>,
+         so unaffected), making the "even" grid actually be two different
+         sizes. !important since this page's inline <style> block parses
+         before reveal's JS-injected CSS, so plain specificity can lose the
+         cascade-order fight (see shared/theme.css .reveal .controls for
+         the same issue). */
+      .media-grid img {
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        object-fit: cover;
+      }
+      .media-grid .media-cell {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+      /* Backgrounds set here (not as inline style="" attributes) so Vite's
+         CSS asset pipeline resolves/hashes these paths for the production
+         build -- inline style attributes on elements aren't scanned the
+         same way <style> blocks are. */
+      .media-gif-02 { background-image: url('./assets/12/LeafbyLeaf_Gif_02.gif'); }
+      .media-gif-03 { background-image: url('./assets/12/LeafbyLeaf_Gif_03.gif'); }
+      .media-gif-04 { background-image: url('./assets/12/LeafbyLeaf_Gif_04.gif'); }
+      .media-gif-05 { background-image: url('./assets/12/LeafbyLeaf_Gif_05.gif'); }
+
+      /* Slide 13: slower highlight-color cycle than slide 1. Two classes
+         (0,2,1) beats shared/theme.css's `.impact-slide h1` (0,1,1) on
+         specificity alone, so this wins regardless of load order without
+         needing !important -- only animation-duration is overridden, the
+         keyframes/timing/iteration-count still come from that shared rule. */
+      .impact-slide.slow-highlight h1 {
+        animation-duration: 30s;
+      }
+
+      /* Slide 14 reuses the shared .photo-caption pattern (image, then a
+         small caption below it) from shared/theme.css, centered instead
+         of the pattern's default left alignment.
+         Specificity note: selectors below combine BOTH .photo-caption and
+         .centered-caption (0,2,0 / 0,2,1) to beat the shared rules'
+         .photo-caption / .photo-caption figcaption (0,1,0 / 0,1,1) --
+         `.centered-caption` alone would tie, and lose the load-order fight
+         since this page's inline <style> parses before shared/theme.css
+         is JS-injected.
+         display:flex + align-items:center centers the image and caption
+         as a unit regardless of which one is wider (the caption text here
+         is wider than the book cover) -- centering only the figcaption's
+         own text wouldn't center it relative to the image if the caption
+         were the widest child determining the figure's shrink-wrapped
+         width. */
+      .photo-caption.centered-caption {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .photo-caption.centered-caption figcaption {
+        text-align: center;
+      }
+
+      /* Media grid slide (slide 16): 2x2, all cropped to the same 16:9
+         proportion (object-fit: cover) regardless of each source image's
+         own ratio -- same approach as the slide-12 grid. */
+      .media-grid-slide-2x2 {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .media-grid-2x2 {
+        display: grid;
+        grid-template-columns: repeat(2, 420px);
+        grid-auto-rows: 236px;
+        gap: 16px;
+      }
+      /* reveal's base theme sets `.reveal img { max-width:95%; max-height:
+         95%; margin: 20px 0; }` -- reset here so our own sizing applies
+         cleanly (see the slide-12 grid, which hit exactly this issue).
+         !important since this page's inline <style> block parses before
+         reveal's JS-injected CSS, so plain specificity can lose the
+         cascade-order fight. */
+      .media-grid-2x2 img {
+        width: 420px;
+        height: 236px;
+        display: block;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        object-fit: cover;
+      }
     </style>
   </head>
   <body>
@@ -163,6 +285,82 @@
           data-background-iframe="https://www.youtube.com/embed/YRwUU5MoCnI?autoplay=1"
           data-background-interactive
         ></section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <img src="./assets/10/sketches.png" alt="" style="max-width: 100%; max-height: 100%;" />
+          </div>
+        </section>
+
+        <!-- Video embed: same settings as slides 4-6, 9 -->
+        <section
+          data-movement="1"
+          data-movement-name="Opening"
+          data-background-iframe="https://www.youtube.com/embed/h_BvZg-2xt4?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <section data-movement="1" data-movement-name="Opening" class="media-grid-slide">
+          <div class="media-grid">
+            <img src="./assets/12/Image-Sequence_002_0000.jpg" alt="" />
+            <img src="./assets/12/Image-Sequence_025_0000.jpg" alt="" />
+            <div class="media-cell media-gif-02"></div>
+            <div class="media-cell media-gif-03"></div>
+            <div class="media-cell media-gif-04"></div>
+            <div class="media-cell media-gif-05"></div>
+          </div>
+        </section>
+
+        <!-- Same structure as slide 1: .impact-slide/.impact-inner sizing
+             + .title-highlight, which already carries the cycling-color
+             animation (title-highlight-cycle in shared/theme.css). -->
+        <section class="impact-slide slow-highlight" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <h1 class="title-highlight" style="--divider-color: var(--accent-cyan);">
+              What is play?
+            </h1>
+          </div>
+        </section>
+
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/14/9780807046814.jpg" alt="Homo Ludens book cover" style="max-height: 100%;" />
+              <figcaption>Homo Ludens - Johan Huizinga (1938)</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <!-- Quote block: highlighter-marker background on the quoted
+             text, from shared/theme.css's documented .quote-block pattern. -->
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <p class="quote-block">
+              <span class="quote-highlight" style="--divider-color: var(--accent-violet);">&ldquo;Play is older than culture.&rdquo;</span>
+              <br />&mdash; Johan Huizinga
+            </p>
+          </div>
+        </section>
+
+        <section data-movement="1" data-movement-name="Opening" class="media-grid-slide-2x2">
+          <div class="media-grid-2x2">
+            <img src="./assets/16/27Mis21.jpg" alt="" />
+            <img src="./assets/16/AnimalCrossingNewHorizons-1038x576.jpg" alt="" />
+            <img src="./assets/16/Chess_pieces_close_up.jpg" alt="" />
+            <img src="./assets/16/images.jpg" alt="" />
+          </div>
+        </section>
+
+        <!-- Side by side, uncropped: shared/theme.css's documented
+             .media-pair pattern. -->
+        <section class="impact-slide" data-movement="1" data-movement-name="Opening">
+          <div class="impact-inner">
+            <div class="media-pair">
+              <img src="./assets/17/homoludensstudyo1950huiz_0013.jpg" alt="" />
+              <img src="./assets/17/homoludensstudyo1950huiz_0019.jpg" alt="" />
+            </div>
+          </div>
+        </section>
 
       </div>
     </div>
