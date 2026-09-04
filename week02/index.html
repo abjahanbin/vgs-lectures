@@ -4,6 +4,164 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Week 02 — Video Game Studies</title>
+    <style>
+      /* Slide 2: two words, one anchored left and one right, each with its
+         own highlight color -- not the shared .impact-slide pattern, since
+         that pattern's h1 rule drives an animated color-cycle on the
+         highlight fill (see theme.css), which would override the distinct
+         inline --divider-color set on each word here. */
+      .reveal .slides section.split-title-slide {
+        position: absolute !important;
+        inset: 0 !important;
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .split-title-inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: var(--bottom-bar-height);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.9em;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+
+      /* Separator between the two words -- a plain span, not an h1, so it
+         doesn't pick up reveal's h1 margin/last-child rules that PLAY and
+         GAME needed overriding for. */
+      .split-title-divider {
+        font-family: 'Russo One', sans-serif;
+        font-size: 3em;
+        line-height: 1;
+        color: var(--fg-heading);
+      }
+
+      /* !important: reveal's own `.reveal h1:last-child { margin-bottom: 0 }`
+         (black.css) only matches GAME here (the last h1), and even the
+         plain `.reveal h1` bottom-margin rule ties this selector's
+         specificity and wins on load order (this page-local <style> parses
+         before the JS-injected reveal/theme CSS). Left unchecked, PLAY kept
+         reveal's default 20px bottom margin while GAME had none -- the
+         actual cause of the two words sitting at different heights. */
+      .split-title-inner h1 {
+        font-size: 3em;
+        margin: 0 !important;
+        white-space: nowrap;
+      }
+
+      /* Slides 3-4: 2x2 grid of images, all cropped to the same wide (16:9)
+         proportion -- larger cells than a single 4x2 grid would allow.
+         Same pattern as week01's .media-grid-slide/.media-grid, reproduced
+         here per-page since it isn't (yet) promoted to shared/theme.css. */
+      .image-grid-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .image-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 380px);
+        grid-auto-rows: 213.75px;
+        gap: 16px;
+      }
+      /* reveal's base theme sets `.reveal img { max-width:95%; max-height:
+         95%; margin: 20px 0; }`, which would otherwise shrink/offset these
+         relative to their fixed grid cell size. !important since this
+         page's inline <style> block parses before reveal's JS-injected
+         CSS, so plain specificity can lose the cascade-order fight (see
+         shared/theme.css .reveal .controls for the same issue). */
+      .image-grid img {
+        width: 380px;
+        height: 213.75px;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        display: block;
+        object-fit: cover;
+      }
+
+      /* Slide 5: longer than the usual title-slide phrase -- the shared
+         .impact-slide h1 rule's 1.5em size (tuned for short titles like
+         "Video Game Studies") ran edge-to-edge off the canvas here. Shrunk
+         just for this heading rather than changing the shared rule.
+         animation: none also cancels that shared rule's color-cycling --
+         this highlight stays a fixed orange, not cycling through the
+         palette like the title slide's. */
+      .impact-slide h1.long-title {
+        font-size: 1em;
+        animation: none;
+      }
+
+      /* Slide 8: title (before the colon) + subtitle (after it), rather
+         than one long two-line heading. animation: none keeps the
+         highlight a fixed purple instead of cycling through the palette
+         like the main title slide's. !important on both margins: with the
+         subtitle <p> now the last child instead of the h1, reveal's own
+         `.reveal h1:last-child { margin-bottom: 0 }` no longer applies to
+         the heading, and its plain `.reveal h1`/`.reveal p` margin rules
+         tie or beat this page-local <style>'s specificity and win on load
+         order (see the PLAY/GAME fix above for the same issue). */
+      .impact-slide h1.section-title {
+        font-size: 1.3em;
+        white-space: normal;
+        animation: none;
+        margin: 0 !important;
+      }
+      .section-subtitle {
+        margin: 0.6em 0 0 !important;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 0.9em;
+        font-weight: 600;
+        color: var(--accent-neutral);
+      }
+
+      /* Slide 6: a full paragraph-length quote -- shared/theme.css's
+         .quote-block/.quote-highlight pattern is meant for a short pull
+         quote with a highlighter-marker background; painting that behind
+         five lines of text would be noisy, not legible. Plain italic text
+         instead, left-aligned (centered text ragging across many lines is
+         harder to read than a fixed left edge), constrained to a
+         readable measure, and vertically centered via .impact-inner. */
+      /* !important: overrides reveal's own `.reveal blockquote { padding:
+         5px }` (black.css), which this page-local <style> loses to on
+         load order at tied specificity. Reveal's 5px was noticeably
+         tighter on top/bottom than the visual gutter down each side once
+         text wrapped inside the box -- explicit equal padding on all four
+         sides fixes that mismatch. */
+      .long-quote {
+        font-size: 0.5em;
+        max-width: 34em;
+        padding: 1.6em !important;
+        text-align: left;
+      }
+      .long-quote p {
+        margin: 0 0 0.9em;
+        font-style: italic;
+        line-height: 1.5;
+        color: var(--fg-color);
+      }
+      .long-quote cite {
+        display: block;
+        text-align: right;
+        font-style: normal;
+        font-size: 0.7em;
+        color: var(--accent-neutral);
+      }
+      .long-quote cite em {
+        font-style: italic;
+      }
+    </style>
   </head>
   <body>
     <div class="reveal">
@@ -22,8 +180,181 @@
           </div>
         </section>
 
-        <!-- Blank -- build this slide out -->
-        <section></section>
+        <section
+          class="split-title-slide"
+          data-movement="2"
+          data-movement-name="Play &amp; Game"
+        >
+          <div class="split-title-inner">
+            <h1 class="title-highlight" style="--divider-color: var(--accent-magenta);">PLAY</h1>
+            <span class="split-title-divider">/</span>
+            <h1 class="title-highlight" style="--divider-color: var(--accent-cyan);">GAME</h1>
+          </div>
+        </section>
+
+        <section
+          class="image-grid-slide"
+          data-movement="3"
+          data-movement-name="Play &amp; Game"
+        >
+          <div class="image-grid">
+            <img src="./assets/03/Backgammon-Game.png" alt="" />
+            <img src="./assets/03/Jigsaw_puzzle_01_by_Scouten.jpg" alt="" />
+            <img src="./assets/03/girl-father-playing-catch.jpg" alt="" />
+            <img src="./assets/03/IMG-1366Victoria-Greensmith-Photography-min-scaled.jpg" alt="" />
+          </div>
+        </section>
+
+        <section
+          class="image-grid-slide"
+          data-movement="3"
+          data-movement-name="Play &amp; Game"
+        >
+          <div class="image-grid">
+            <img src="./assets/03/67df688bf04087548af75e10_3954a76a-09ef-4133-8c48-ed1567dc1891_independent-reading.jpeg" alt="" />
+            <img src="./assets/03/imrs.avif" alt="" />
+            <img src="./assets/03/portrait-sketch-in-notebook-scaled.jpg" alt="" />
+            <img src="./assets/03/DSC_9225_DjkHw2o_t1100.jpg" alt="" />
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="4"
+          data-movement-name="Defining Game"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight long-title" style="--divider-color: var(--accent-orange);">Why &ldquo;game&rdquo; resists definition</h1>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="5"
+          data-movement-name="Wittgenstein"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Consider, for example, the activities that we call &lsquo;games&rsquo;. I mean board-games, card-games, ball-games, athletic games, and so on. What is common to them all? &ndash; Don&rsquo;t say: &lsquo;They must have something in common, or they would not be called &ldquo;games&rdquo;&rsquo; &ndash; but look and see whether there is anything common to all. &ndash; For if you look at them, you won&rsquo;t see something that is common to all, but similarities, affinities, and a whole series of them at that. (&sect;66)&rdquo;</p>
+              <cite>&mdash; Ludwig Wittgenstein, <em>Philosophical Investigations</em> (1953)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="6"
+          data-movement-name="Huizinga"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;&hellip; All play moves and has it&rsquo;s being within a play-ground marked off beforehand either materially or ideally, deliberately or as a matter of course. Just as there is no formal difference between play and ritual, so the &lsquo;consecrated spot&rsquo; cannot be formally distinguished from the play-ground. The arena, the card table, the magic circle, the temple, the stage, the screen, the tennis court, the court of justice, etc, are all in form and function play-grounds, i.e. forbidden spots, isolated, hedged round, hallowed, within which special rules obtain. All are temporary worlds within the ordinary world, dedicated to the performance of an act apart&hellip;&rdquo;</p>
+              <cite>&mdash; Johan Huizinga, <em>Homo Ludens</em> (1938)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="7"
+          data-movement-name="Formalist Answer"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight section-title" style="--divider-color: var(--accent-violet);">The formalist answer</h1>
+            <p class="section-subtitle">rules, obstacles, artificial conflict</p>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="8"
+          data-movement-name="Caillois"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;After examining different possibilities, I am proposing a division into four main rubrics, depending upon whether, in the games under consideration, the role of competition, chance, simulation, or vertigo is dominant. I call these agon, alea, mimicry, and ilinx, respectively.&rdquo;</p>
+              <cite>&mdash; Roger Caillois, <em>Man, Play and Games</em> (1958)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="8"
+          data-movement-name="Caillois"
+        >
+          <div class="impact-inner">
+            <img src="./assets/09/calloistablegrey.jpg" alt="" style="max-width: 100%; max-height: 100%;" />
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="9"
+          data-movement-name="Suits"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Playing a game is the voluntary attempt to overcome unnecessary obstacles.&rdquo;</p>
+              <cite>&mdash; Bernard Suits, <em>The Grasshopper: Games, Life and Utopia</em> (1978)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="10"
+          data-movement-name="Salen &amp; Zimmerman"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;A game is a system in which players engage in an artificial conflict, defined by rules, that results in a quantifiable outcome.&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Same quote as the previous slide, with its key terms picked
+             out -- .quote-block on the blockquote (alongside .long-quote)
+             brings in shared/theme.css's .quote-block .quote-highlight
+             rule so these spans get the highlighter-marker treatment. -->
+        <section
+          class="impact-slide"
+          data-movement="11"
+          data-movement-name="Salen &amp; Zimmerman"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote quote-block">
+              <p style="--divider-color: var(--accent-magenta);">&ldquo;A game is a <span class="quote-highlight">system</span> in which <span class="quote-highlight">players</span> engage in an <span class="quote-highlight">artificial</span> <span class="quote-highlight">conflict</span>, defined by <span class="quote-highlight">rules</span>, that results in a <span class="quote-highlight">quantifiable outcome</span>.&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Reuses the .image-grid-slide/.image-grid pattern from slides
+             3-4 -- same fixed wide (16:9) cell size, cropped to match, just
+             with 2 cells instead of 4. -->
+        <section
+          class="image-grid-slide"
+          data-movement="12"
+          data-movement-name="Board Games &amp; Pickup Games"
+        >
+          <div class="image-grid">
+            <img src="./assets/14/0_BaQs4MaCPgxibQdE.jpg" alt="" />
+            <img src="./assets/14/pickup-basketball-game.jpg" alt="" />
+          </div>
+        </section>
+
+        <section
+          class="image-grid-slide"
+          data-movement="13"
+          data-movement-name="Solitaire &amp; Tetris"
+        >
+          <div class="image-grid">
+            <img src="./assets/15/hq720.jpg" alt="" />
+            <img src="./assets/15/maxresdefault.jpg" alt="" />
+          </div>
+        </section>
 
       </div>
     </div>

@@ -154,6 +154,15 @@ function setupBackgrounds(deck) {
 
 export function initDeck(config = {}) {
   const deck = new Reveal({
+    // 16:9 slide canvas for every week -- reveal.js defaults to 960x700
+    // (~4:3), which doesn't match. Keeping width at reveal's own default
+    // and only correcting height (960 * 9/16 = 540) preserves reveal's
+    // built-in text auto-scaling, which is tuned around that width --
+    // doubling both dimensions to 1920x1080 instead visibly shrank every
+    // existing slide's text by about half. No week passes its own
+    // width/height, so setting it once here covers all 15 decks.
+    width: 960,
+    height: 540,
     hash: true,
     controls: true,
     progress: false, // replaced by the custom bottom status bar
