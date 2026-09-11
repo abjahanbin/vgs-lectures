@@ -4,6 +4,204 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Week 03 — Video Game Studies</title>
+    <style>
+      /* Slide 2: title + subtitle -- same pattern as week02's section-title
+         slides. animation: none keeps the highlight a fixed color instead
+         of cycling through the palette like the main title slide's.
+         !important on both margins: reveal's own `.reveal h1:last-child {
+         margin-bottom: 0 }` (black.css) only applies when the h1 is the
+         last child -- with the subtitle <p> after it, the h1 falls back to
+         reveal's plain `.reveal h1` bottom-margin rule, which ties this
+         page-local <style>'s specificity and wins on load order (this
+         block parses before the JS-injected reveal/theme CSS). */
+      .impact-slide h1.section-title {
+        font-size: 1.3em;
+        white-space: normal;
+        animation: none;
+        margin: 0 !important;
+      }
+      .section-subtitle {
+        margin: 0.6em 0 0 !important;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 0.9em;
+        font-weight: 600;
+        color: var(--accent-neutral);
+      }
+
+      /* Slides 3-4: paragraph-length quote pattern, carried over from
+         week02 -- shared/theme.css's .quote-block/.quote-highlight rules
+         handle the highlighter-marker spans (slide 3), but the surrounding
+         box (max-width measure, font-size, padding, citation styling) is
+         page-local there too, so it's reproduced here rather than assumed
+         shared. */
+      .long-quote {
+        font-size: 0.5em;
+        max-width: 34em;
+        padding: 1.6em !important;
+        text-align: left;
+      }
+      .long-quote p {
+        margin: 0 0 0.9em;
+        font-style: italic;
+        line-height: 1.5;
+        color: var(--fg-color);
+      }
+      .long-quote cite {
+        display: block;
+        text-align: right;
+        font-style: normal;
+        font-size: 0.7em;
+        color: var(--accent-neutral);
+      }
+      .long-quote cite em {
+        font-style: italic;
+      }
+
+      /* Slide 10: game-loop diagram -- title + a circular arrow diagram
+         (SVG for the curved connecting arrows, absolutely-positioned HTML
+         labels on top so the node text can use real fonts/line-wrapping,
+         which SVG <text> can't do). Percent-based node positions match the
+         SVG's own (square) viewBox fractions, so both scale together if
+         the diagram is resized.
+
+         Nodes are round rather than rectangular highlighter boxes: a
+         circle's edge is the same distance from its center in every
+         direction, so the arcs connecting them can be tangent to that
+         edge by exact trigonometry (see the arc coordinates below) instead
+         of an eyeballed angular inset that has to be re-tuned whenever a
+         label's text (and so its box's width/height) changes -- that
+         mismatch was the real source of the overlap in earlier attempts. */
+      .diagram-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8em;
+      }
+      /* .diagram-slide .loop-title (0,2,0) rather than plain .loop-title
+         (0,1,0): reveal's own `.reveal h2 { font-size: var(--r-heading2-
+         size) }` (reveal.css) is (0,1,1), which outranks a single-class
+         selector on specificity alone regardless of source order -- the
+         font-size below was silently losing to it entirely. */
+      .diagram-slide .loop-title {
+        margin: 0;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.9em;
+      }
+      .loop-diagram {
+        position: relative;
+        width: 420px;
+        aspect-ratio: 1 / 1;
+      }
+      .loop-diagram svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      /* 134px diameter (67px radius) matches the r=80 used in the SVG's
+         500-unit space to compute each arc's tangent-inset angle below
+         (80/500 of the 420px-wide .loop-diagram is 67.2px).
+
+         text-align: center needs !important: shared/theme.css sets
+         `.reveal .slides { text-align: left }`, and that descendant
+         selector's two classes (0,2,0) outrank this single-class selector
+         (0,1,0) regardless of load order -- for equal-width two-line
+         labels ("Player Action") that silent loss is invisible since
+         left- and center-aligned lines land in the same place, but for
+         differently-wide lines ("System"/"Response") it left-aligns them
+         visibly instead of centering each over the other. */
+      .loop-node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 134px;
+        height: 134px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center !important;
+        background: var(--divider-color);
+        color: #0a0a0f;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.48em;
+        line-height: 1.2;
+      }
+      /* No max-width here on purpose -- an earlier version used
+         `max-width: 54%` to force 2-word labels to wrap onto 2 lines, but
+         a single UNBREAKABLE word (no space to wrap at) that happened to
+         need more than that 54% -- "Feedback", "Compare" -- would ignore
+         the cap's wrapping intent yet still get its rendered width capped
+         to it, since the box has nowhere to break the word. The result:
+         the word overflows a too-narrow box, and overflowing centered
+         text doesn't overflow symmetrically -- it renders anchored to the
+         box's left edge, so the visible glyphs sit right of the circle's
+         true center. Symptom scaled with word length, which is why short
+         words ("Choose", "Reveal") never showed it. Root fix: don't rely
+         on width to induce wrapping at all -- give any label that needs 2
+         lines an explicit <br> instead, and let single words size
+         naturally (never narrower than their own content, so nothing
+         overflows and centering just works). */
+
+      /* Slide 14's diagram: labels run 2-4 lines each, so a smaller
+         font-size than the default 0.48em keeps every line comfortably
+         inside the 134px circle at the existing 1.2 line-height. */
+      .loop-node-text.long-label {
+        font-size: 0.68em;
+      }
+      /* Slide 19's third label runs 4 lines -- smaller still, relative to
+         .long-label's already-reduced size, so all 4 lines clear the
+         circle at the existing 1.2 line-height. */
+      .loop-node-text.long-label.longer-label {
+        font-size: 0.72em;
+      }
+
+      /* Slide 38: 3 stacked highlighted words. animation: none keeps each
+         at its own fixed color instead of all 3 cycling in sync (they'd
+         always show the same color as each other, since they'd share one
+         keyframe timeline). margin needs !important for the same reason
+         documented above for .section-title: reveal's own
+         `.reveal h1:last-child { margin-bottom: 0 }` only zeroes the last
+         of the 3 headings, leaving the first two with its default
+         non-zero bottom margin otherwise, since our page-local <style>
+         parses before that JS-injected rule and a plain margin override
+         would tie its specificity and lose on load order.
+         color needs !important for the same kind of reason: shared/
+         theme.css's `.title-highlight` sets color:#0a0a0f for dark text
+         on the highlight fill, but `.reveal h1,h2,h3,h4 { color: var(
+         --fg-heading) }` (also shared/theme.css) is a class+type selector
+         and so outranks .title-highlight's single class regardless of
+         load order -- the light heading color was winning instead,
+         nearly illegible against the brighter cyan/lime fills. */
+      .impact-slide h1.mda-word {
+        font-size: 1.3em;
+        white-space: nowrap;
+        animation: none;
+        margin: 0 0 0.25em 0 !important;
+        color: #0a0a0f !important;
+      }
+
+      /* Slide 11: shared/theme.css's .photo-caption is left-aligned by
+         default. Combining both classes (0,2,0 / 0,2,1) beats that shared
+         rule's specificity (0,1,0 / 0,1,1) outright, rather than tying and
+         losing the load-order fight -- same fix as week01/week02's
+         centered captions. display:flex + align-items:center centers the
+         image and caption as a unit, since the caption text can be wider
+         than the image. */
+      .photo-caption.centered-caption {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .photo-caption.centered-caption figcaption {
+        text-align: center;
+      }
+    </style>
   </head>
   <body>
     <div class="reveal">
@@ -19,6 +217,751 @@
             <h1 class="title-highlight" style="--divider-color: var(--accent-cyan);">
               Video Game Studies
             </h1>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="2"
+          data-movement-name="Formalism"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight section-title" style="--divider-color: var(--accent-cyan);">Formalism</h1>
+            <p class="section-subtitle">Game Loops and MDA</p>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="3"
+          data-movement-name="Salen &amp; Zimmerman"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote quote-block">
+              <p style="--divider-color: var(--accent-magenta);">&ldquo;A game is a <span class="quote-highlight">system</span> in which <span class="quote-highlight">players</span> engage in an <span class="quote-highlight">artificial</span> <span class="quote-highlight">conflict</span>, defined by <span class="quote-highlight">rules</span>, that results in a <span class="quote-highlight">quantifiable outcome</span>.&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="4"
+          data-movement-name="Bogost"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Play is a way of operating a constrained system in a gratifying way. This general act can apply to anything whatsoever &mdash; soccer and Tetris, sure, but also yard work and parenting, errands and marriage.&rdquo;</p>
+              <cite>&mdash; Ian Bogost, <em>Play Anything</em> (2016)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="5"
+          data-movement-name="Bordwell"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Before directors wish to convey ideas or moods, evoke emotions or themes, transmit ideologies or cultural values, they must take care of some mundane business.&rdquo;</p>
+              <cite>&mdash; David Bordwell</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="6"
+          data-movement-name="Ludology"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight" style="--divider-color: var(--accent-lime);">Ludology</h1>
+          </div>
+        </section>
+
+        <section
+          data-movement="7"
+          data-movement-name="Game Studies"
+          data-background-iframe="https://en.wikipedia.org/wiki/Game_studies"
+          data-background-interactive
+          data-preload
+        ></section>
+
+        <section
+          class="impact-slide"
+          data-movement="8"
+          data-movement-name="Nguyen"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Formalism is the view that the essential nature of a game is its rule-set, and that proper play involves obeying the rules.&rdquo;</p>
+              <cite>&mdash; C. Thi Nguyen, <em>Philosophy of Games</em> (2017)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="9"
+          data-movement-name="Game Design"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight" style="--divider-color: var(--accent-orange);">Game Design</h1>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="10"
+          data-movement-name="Game Loops"
+        >
+          <h2 class="loop-title">Game Loops</h2>
+          <div class="loop-diagram">
+            <!-- Square viewBox, 3 nodes 120deg apart on one circle (center
+                 250,250 radius 170 = node position radius). Node circles
+                 have radius 80 in this same 500-unit space, so each arc's
+                 endpoint is inset from its node's exact angle by
+                 2*asin(80/(2*170)) =~ 27.2deg -- the angle at which a
+                 point on the 170-radius circle sits exactly 80 units
+                 (one node-radius) from the node's center -- plus a few
+                 more degrees of margin so the arc doesn't just kiss the
+                 node's edge. That's exact tangent geometry, not a guess. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Player Action -> System Response -> Feedback -> Player Action -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text">Player<br />Action</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text">System<br />Response</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text">Feedback</span></div>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="11"
+          data-movement-name="Rock, Paper, Scissors"
+        >
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/11/images.jpg" alt="" style="max-height: 100%;" />
+              <figcaption>Rock, Paper, Scissors</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="12"
+          data-movement-name="Choose, Reveal, Compare"
+        >
+          <div class="loop-diagram">
+            <!-- Same diagram as slide 10 (Game Loops), minus the title --
+                 see that slide's comments for the arc/tangent geometry.
+                 No max-width/nudge on the labels -- see the .loop-node-text
+                 comment for why; short single words like these just size
+                 naturally and stay centered. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Choose -> Reveal -> Compare -> Choose -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-2)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-2)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-2)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text">Choose</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text">Reveal</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text">Compare</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="13"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/-FAzHyXZPm0?autoplay=1&start=75"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="14"
+          data-movement-name="Tetris Loop"
+        >
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry. These labels are longer, so each
+                 gets an explicit 2-line break grouping a few words per
+                 line rather than one word per line (never relying on
+                 width-induced wrapping -- see the .loop-node-text comment
+                 for why that overflows and mis-centers unbreakable
+                 content). Font-size is shrunk further just on this
+                 diagram's nodes so both lines stay readable within the
+                 circle. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Position/Rotate Shape -> Shape Locks -> Lines Clear & Speed Increases -> Position/Rotate Shape -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-3)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-3)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-3)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Position/Rotate<br />Shape</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Shape<br />Locks</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Lines Clear &amp;<br />Speed Increases</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="15"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/KcpRyIFU7Eg?autoplay=1&start=13"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="16"
+          data-movement-name="Snake Loop"
+        >
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach (explicit <br>, grouping a couple words
+                 per line rather than one word per line). -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Choose Movement Direction -> Eat -> Grow (risk increases) -> Choose Movement Direction -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-4)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-4)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-4)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Choose Movement<br />Direction</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Eat</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Grow<br />(risk increases)</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="17"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/d5Rf0An-jEg?autoplay=1&start=220"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="18"
+          data-movement-name="Match-3 Loop"
+        >
+          <h2 class="loop-title">Core Game Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Swap -> Match -> Clear/cascade -> Swap -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-5)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-5)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-5)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Swap</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Match</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Clear/cascade</span></div>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="19"
+          data-movement-name="Macro Loop"
+        >
+          <h2 class="loop-title">Macro Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. The third label is the longest used yet,
+                 so it gets its own smaller font-size (.longer-label) on
+                 top of .long-label to fit its 4 lines. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Complete level -> Earn stars/currency -> Spend on boosters or unlock next level -> Complete level -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-6)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-6)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-6)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Complete level</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Earn<br />stars/currency</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label longer-label">Spend on<br />boosters or<br />unlock next<br />level</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="20"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/G1atkq4C1KU?autoplay=1&start=1953"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="21"
+          data-movement-name="Core Game Loop"
+        >
+          <h2 class="loop-title">Core Game Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-7" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Explore & Fight -> Defeat Enemies -> Collect Souls -> Explore & Fight -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-7)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-7)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-7)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Explore &amp; Fight</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Defeat Enemies</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Collect Souls</span></div>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="22"
+          data-movement-name="Macro Loop"
+        >
+          <h2 class="loop-title">Macro Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Explore -> Find ability/upgrade -> Unlock New Area -> Explore -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-8)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-8)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-8)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Explore</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Find<br />ability/upgrade</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Unlock New Area</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="23"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/AJWOgto743k?autoplay=1&start=1191"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="24"
+          data-movement-name="Core Game Loop"
+        >
+          <h2 class="loop-title">Core Game Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Observe, Explore and Experiment -> Solve/Survive -> Gain Resources or Shrines -> Observe, Explore and Experiment -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-9)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-9)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-9)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Observe,<br />Explore and<br />Experiment</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Solve/Survive</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Gain Resources<br />or Shrines</span></div>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="25"
+          data-movement-name="Session Loop"
+        >
+          <h2 class="loop-title">Session Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-10" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Explore region -> Clear shrines/towers -> Upgrade stamina/hearts -> Explore region -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-10)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-10)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-10)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Explore region</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Clear<br />shrines/towers</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Upgrade<br />stamina/hearts</span></div>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="26"
+          data-movement-name="Long-Term Loop"
+        >
+          <h2 class="loop-title">Long-Term Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-11" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Map Revealed -> Story Progresses -> Divine Beasts Unlocked -> Map Revealed -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-11)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-11)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-11)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Map Revealed</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Story Progresses</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Divine Beasts<br />Unlocked</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="27"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/ArG84ADSXOM?autoplay=1&start=420"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="28"
+          data-movement-name="Core Game Loop"
+        >
+          <h2 class="loop-title">Core Game Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-12" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Position & Engage -> Damage Trade -> Kill or Retreat -> Position & Engage -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-12)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-12)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-12)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Position &amp;<br />Engage</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Damage Trade</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Kill or Retreat</span></div>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="29"
+          data-movement-name="Match Loop"
+        >
+          <h2 class="loop-title">Match Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-13" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Farm/Loot Early Game -> Objective Control -> Win/Lose Match -> Farm/Loot Early Game -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-13)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-13)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-13)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Farm/Loot<br />Early Game</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Objective Control</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Win/Lose Match</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="30"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/drcHtbAesg4?autoplay=1&mute=1"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="31"
+          data-movement-name="Meta Loop"
+        >
+          <h2 class="loop-title">Meta Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-14" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Play Round -> Rank up & Unlock Cosmetics -> Season reset -> Play Round -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-14)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-14)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-14)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Play Round</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Rank up &amp;<br />Unlock Cosmetics</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Season reset</span></div>
+          </div>
+        </section>
+
+        <section
+          data-movement="32"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/OikZ8YmydLU?autoplay=1&start=279"
+          data-background-interactive
+        ></section>
+
+        <section
+          class="diagram-slide"
+          data-movement="33"
+          data-movement-name="Core Game Loop"
+        >
+          <h2 class="loop-title">Core Game Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-15" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Click -> Earn Cookies -> Unlock Upgrades -> Click -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-15)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-15)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-15)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Click</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Earn Cookies</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Unlock Upgrades</span></div>
+          </div>
+        </section>
+
+        <!-- Blank -- build this slide out -->
+        <section></section>
+
+        <!-- Copy of slide 10 (Game Loops) -- see that slide's comments
+             for the arc/tangent geometry. Marker id bumped to -16 since
+             ids must be unique across the whole document (all slides
+             share one DOM), even though only one is ever visible. -->
+        <section
+          class="diagram-slide"
+          data-movement="10"
+          data-movement-name="Game Loops"
+        >
+          <h2 class="loop-title">Game Loops</h2>
+          <div class="loop-diagram">
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-16" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Player Action -> System Response -> Feedback -> Player Action -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-16)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-16)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-16)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text">Player<br />Action</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text">System<br />Response</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text">Feedback</span></div>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="36"
+          data-movement-name="Cook"
+        >
+          <div class="impact-inner">
+            <figure class="photo-caption centered-caption">
+              <img src="./assets/36/alchemy_3.jpg" alt="" style="max-height: 100%;" />
+              <figcaption>The Chemistry of Game Design &mdash; Dan Cook</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="37"
+          data-movement-name="Compulsion Loop"
+        >
+          <h2 class="loop-title">Compulsion Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry, and slide 14's for the multi-line
+                 label approach. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-17" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Anticipation or Stimulus -> Challenge -> Reward (Dopamine Release) -> Anticipation or Stimulus -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-17)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-17)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead-17)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Anticipation or<br />Stimulus</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Challenge</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Reward<br />(Dopamine Release)</span></div>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="38"
+          data-movement-name="MDA"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-magenta);">Mechanics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-cyan);">Dynamics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-lime);">Aesthetics</h1>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="39"
+          data-movement-name="Mechanics"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Mechanics are the various actions, behaviors and control mechanisms afforded to the player within a game context.&rdquo;</p>
+              <cite>&mdash; Robin Hunicke, Marc LeBlanc, Robert Zubek, <em>MDA: A Formal Approach to Game Design and Game Research</em></cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="40"
+          data-movement-name="Dynamics"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Dynamics describes the run-time behavior of the mechanics acting on player inputs and each others&rsquo; outputs over time.&rdquo;</p>
+              <cite>&mdash; Robin Hunicke, Marc LeBlanc, Robert Zubek, <em>MDA: A Formal Approach to Game Design and Game Research</em></cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="impact-slide"
+          data-movement="41"
+          data-movement-name="Aesthetics"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;Aesthetics describes the desirable emotional responses evoked in the player, when she interacts with the game system.&rdquo;</p>
+              <cite>&mdash; Robin Hunicke, Marc LeBlanc, Robert Zubek, <em>MDA: A Formal Approach to Game Design and Game Research</em></cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <section
+          class="diagram-slide"
+          data-movement="42"
+          data-movement-name="MDA Game Loop"
+        >
+          <h2 class="loop-title">MDA Game Loop</h2>
+          <div class="loop-diagram">
+            <!-- Same diagram again -- see slide 10's comments for the
+                 arc/tangent geometry. -->
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead-18" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Mechanics -> Dynamics -> Aesthetics -> Mechanics.
+                   marker-start added here (only on this diagram) alongside
+                   marker-end -- orient="auto-start-reverse" on the marker
+                   itself automatically flips the start-side copy to point
+                   outward too, which is the standard SVG technique for a
+                   double-headed arrow using one marker definition. -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-start="url(#loop-arrowhead-18)" marker-end="url(#loop-arrowhead-18)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-start="url(#loop-arrowhead-18)" marker-end="url(#loop-arrowhead-18)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-start="url(#loop-arrowhead-18)" marker-end="url(#loop-arrowhead-18)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text long-label">Mechanics</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text long-label">Dynamics</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text long-label">Aesthetics</span></div>
+          </div>
+        </section>
+
+        <!-- Copy of slide 38 -->
+        <section
+          class="impact-slide"
+          data-movement="38"
+          data-movement-name="MDA"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-magenta);">Mechanics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-cyan);">Dynamics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-lime);">Aesthetics</h1>
           </div>
         </section>
 
