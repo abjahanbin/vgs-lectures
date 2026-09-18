@@ -4,6 +4,238 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Week 04 — Video Game Studies</title>
+    <style>
+      /* Slide 2: title-highlight cycles through the palette by default
+         (shared/theme.css) -- animation: none pins it to the single
+         --divider-color set inline instead.
+         color needs !important: shared/theme.css's `.title-highlight`
+         sets color:#0a0a0f for dark text on the highlight fill, but
+         `.reveal h1,h2,h3,h4 { color: var(--fg-heading) }` (also shared/
+         theme.css) is a class+type selector and so outranks
+         .title-highlight's single class regardless of load order -- the
+         light heading color wins instead, which is hard to read against
+         a bright fill like cyan (same issue fixed on week03 slide 38). */
+      .impact-slide h1.static-title {
+        animation: none;
+        color: #0a0a0f !important;
+      }
+
+      /* Slide 3: game-loop diagram, carried over from week03 -- see that
+         file's slide 10 comments for the full rationale (circular nodes
+         for exact tangent geometry, no max-width on labels since
+         unbreakable words overflow it and mis-center, etc). */
+      .diagram-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8em;
+      }
+      .diagram-slide .loop-title {
+        margin: 0;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.9em;
+      }
+      .loop-diagram {
+        position: relative;
+        width: 420px;
+        aspect-ratio: 1 / 1;
+      }
+      .loop-diagram svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .loop-node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 134px;
+        height: 134px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center !important;
+        background: var(--divider-color);
+        color: #0a0a0f;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.48em;
+        line-height: 1.2;
+      }
+
+      /* Slide 4: 3 stacked highlighted words, carried over from week03
+         slide 38 -- see that file's comments for the full rationale
+         (animation:none keeps each word its own fixed color instead of
+         all 3 cycling in sync; both margin and color need !important to
+         beat shared/theme.css's h1 rules on specificity). */
+      .impact-slide h1.mda-word {
+        font-size: 1.3em;
+        white-space: nowrap;
+        animation: none;
+        margin: 0 0 0.25em 0 !important;
+        color: #0a0a0f !important;
+      }
+
+      /* Slides 5 & 6: paragraph-length quote pattern, carried over from
+         week02/week03 -- the surrounding box (max-width measure,
+         font-size, padding, citation styling) is page-local there too,
+         so it's reproduced here rather than assumed shared. */
+      .long-quote {
+        font-size: 0.5em;
+        max-width: 34em;
+        padding: 1.6em !important;
+        text-align: left;
+      }
+      .long-quote p {
+        margin: 0 0 0.9em;
+        font-style: italic;
+        line-height: 1.5;
+        color: var(--fg-color);
+      }
+      .long-quote cite {
+        display: block;
+        text-align: right;
+        font-style: normal;
+        font-size: 0.7em;
+        color: var(--accent-neutral);
+      }
+      .long-quote cite em {
+        font-style: italic;
+      }
+
+      /* Slide 7: three parallel definitions side by side -- new pattern,
+         not carried over from an earlier week. 3 columns rather than
+         stacking top-to-bottom since ~230 words of source text stacked
+         in one narrow column would need a much smaller font to fit the
+         slide's height; splitting the width 3 ways instead keeps each
+         paragraph's font size in the same readable range used elsewhere
+         in this deck (long-quote uses 0.5em for ~1 paragraph; this uses
+         a smaller 0.36em since it's 3 paragraphs at once). */
+      .content-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+      .content-trio {
+        display: flex;
+        gap: 1.4em;
+        align-items: flex-start;
+        width: 100%;
+      }
+      .content-trio > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      /* !important: reveal's black theme sets `.reveal h3 { font-size }`
+         at the same specificity (one class + one type) and, since it's
+         injected via JS module import, lands after this page-local
+         <style> in the DOM -- it would otherwise win on load order. */
+      .content-trio h3 {
+        font-size: 0.6em !important;
+        margin: 0 0 0.35em;
+      }
+      /* .title-highlight sets color:#0a0a0f (0,1,0), but the two-class
+         selector here (0,2,1) already beats reveal's `.reveal h3` color
+         rule (0,1,1) on specificity alone, so no !important needed. */
+      .content-trio h3.title-highlight {
+        color: #0a0a0f;
+      }
+      .content-trio p {
+        font-size: 0.36em;
+        line-height: 1.45;
+        margin: 0;
+        color: var(--fg-color);
+      }
+
+      /* Slide 8: nested concentric-circle diagram (Salen & Zimmerman's
+         Being Playful > Ludic Activities > Game Play containment model).
+         3 filled circles of decreasing size stacked on the same center
+         (DOM order = paint order, so the smallest/last one naturally
+         covers the middle of the larger ones beneath it) rather than 3
+         ring-shaped annuli -- much simpler than clip-path/donut math and
+         visually identical since each circle fully occludes the same-
+         colored center of the one behind it, leaving just a ring showing.
+         Radii (70/140/210, so diameter 140/280/420) are evenly spaced so
+         all 3 bands are the same 70px thickness. Labels are positioned
+         with plain left/top percentages of the diagram container rather
+         than centered inside each band div, since a band is an annulus,
+         not a box, and flex-centering text within one would just center
+         it on the full circle, not the visible ring area. */
+      .rings-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .rings-diagram {
+        position: relative;
+        width: 420px;
+        height: 420px;
+      }
+      .ring {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: var(--divider-color);
+      }
+      .ring-outer { width: 420px; height: 420px; }
+      .ring-middle { width: 280px; height: 280px; }
+      .ring-inner { width: 140px; height: 140px; }
+      .ring-label {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #0a0a0f;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.48em;
+        line-height: 1.2;
+        text-align: center;
+        white-space: nowrap;
+      }
+      .ring-label-inner { top: 50%; }
+      .ring-label-middle { top: 73%; }
+      .ring-label-outer { top: 92%; }
+
+      /* Slide 16: 2 photos side by side, cropped to the same proportion.
+         shared/theme.css's .media-pair keeps each image's own aspect
+         ratio uncropped by design (documented in its comment there) --
+         the opposite of what's wanted here, so this is a separate local
+         pattern: background-image divs (not <img>, so background-size:
+         cover crops predictably without any object-fit browser quirks)
+         each pinned to the same aspect-ratio. */
+      .crop-pair {
+        display: flex;
+        gap: 1em;
+        width: 100%;
+        max-width: 760px;
+      }
+      .crop-pair > div {
+        flex: 1 1 0;
+        min-width: 0;
+        aspect-ratio: 1 / 1;
+        background-size: cover;
+        background-position: center;
+      }
+    </style>
   </head>
   <body>
     <div class="reveal">
@@ -21,6 +253,321 @@
             </h1>
           </div>
         </section>
+
+        <section
+          class="impact-slide"
+          data-movement="2"
+          data-movement-name="Agency"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-cyan);">Agency</h1>
+          </div>
+        </section>
+
+        <!-- Copy of week03 slide 10 -->
+        <section
+          class="diagram-slide"
+          data-movement="3"
+          data-movement-name="Game Loops"
+        >
+          <h2 class="loop-title">Game Loops</h2>
+          <div class="loop-diagram">
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Player Action -> System Response -> Feedback -> Player Action -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text">Player<br />Action</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text">System<br />Response</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text">Feedback</span></div>
+          </div>
+        </section>
+
+        <!-- Copy of week03 slide 38 -->
+        <section
+          class="impact-slide"
+          data-movement="4"
+          data-movement-name="MDA"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-magenta);">Mechanics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-cyan);">Dynamics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-lime);">Aesthetics</h1>
+          </div>
+        </section>
+
+        <!-- Copy of week02 slide 12 -->
+        <section
+          class="impact-slide"
+          data-movement="5"
+          data-movement-name="Salen &amp; Zimmerman"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;A game is a system in which players engage in an artificial conflict, defined by rules, that results in a quantifiable outcome.&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Three parallel definitions: Game Play / Ludic Activities / Being Playful -->
+        <section
+          class="content-slide"
+          data-movement="6"
+          data-movement-name="Categories of Play"
+        >
+          <div class="content-trio">
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-magenta);">Game Play</h3>
+              <p>This form of play is a narrow category of activity that only applies to what we defined already as &ldquo;games.&rdquo; Game play is the formalized interaction that occurs when players follow the rules of a game and experience its system through play.</p>
+            </div>
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-cyan);">Ludic Activities</h3>
+              <p>The word ludic means of or relating to play and like the title of Huizinga&rsquo;s book <em>Homo Ludens</em>, it is derived from ludus, the Latin word for play. Ludic activities are play activities that include not only games, but all of the non-game behaviors we also think of as &ldquo;playing:&rdquo; a kitten batting a ball of yarn, two college students tossing a Frisbee back and forth, children playing on a jungle gym.</p>
+            </div>
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-lime);">Being Playful</h3>
+              <p>The third category of play is the broadest and most inclusive. It refers not only to typical play activities, but also to the idea of being in a playful state of mind, where a spirit of play is injected into some other action. For instance, we are being playful with words when we create nicknames for friends or invent rhymes to tease them. We might dress in a playful way or deliver a critique of a sibling in a playful tone. In each case, the spirit of play infuses otherwise ordinary actions.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Nested categories: Being Playful > Ludic Activities > Game Play -->
+        <section
+          class="rings-slide"
+          data-movement="7"
+          data-movement-name="Nested Categories of Play"
+        >
+          <div class="rings-diagram">
+            <div class="ring ring-outer" style="--divider-color: var(--accent-lime);"></div>
+            <div class="ring ring-middle" style="--divider-color: var(--accent-cyan);"></div>
+            <div class="ring ring-inner" style="--divider-color: var(--accent-magenta);"></div>
+            <span class="ring-label ring-label-inner">Game<br />Play</span>
+            <span class="ring-label ring-label-middle">Ludic<br />Activities</span>
+            <span class="ring-label ring-label-outer">Being<br />Playful</span>
+          </div>
+        </section>
+
+        <!-- Rules / Play / Culture triad -->
+        <section
+          class="content-slide"
+          data-movement="8"
+          data-movement-name="Rules, Play, Culture"
+        >
+          <div class="content-trio">
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-magenta);">Rules</h3>
+              <p>The organization of the designed system.</p>
+            </div>
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-cyan);">Play</h3>
+              <p>The human experience of that system.</p>
+            </div>
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-lime);">Culture</h3>
+              <p>The larger contexts engaged with and inhabited by the system.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Meaningful Play title -->
+        <section
+          class="impact-slide"
+          data-movement="9"
+          data-movement-name="Meaningful Play (Title)"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-lime);">Meaningful Play</h1>
+          </div>
+        </section>
+
+        <!-- Meaningful play quote -->
+        <section
+          class="impact-slide"
+          data-movement="10"
+          data-movement-name="Meaningful Play"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote quote-block">
+              <p style="--divider-color: var(--accent-lime);">&ldquo;<span class="quote-highlight">Meaningful play</span> in a game emerges from the relationship between player action and system outcome; it is the process by which a player takes action within the designed system of a game and the system responds to the action. The meaning of an action in a game resides in the relationship between action and outcome.&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Murray agency quote -->
+        <section
+          class="impact-slide"
+          data-movement="11"
+          data-movement-name="Murray &mdash; Agency"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>&ldquo;[videogame agency is] the satisfying power to take meaningful action and see the results of our decisions and choices.&rdquo;</p>
+              <cite>&mdash; Janet Murray, <em>Hamlet on the Holodeck</em> (1997)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Rules: restriction vs. agency -->
+        <section
+          class="impact-slide"
+          data-movement="12"
+          data-movement-name="Rules: Restriction vs. Agency"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>Meaningful action lies in the tension between rules as restriction and rules as providing agency &mdash; &ldquo;free movement within a more rigid structure.&rdquo;</p>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Meaningful action vs. mere activity -->
+        <section
+          class="impact-slide"
+          data-movement="13"
+          data-movement-name="Meaningful Action vs. Mere Activity"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p><strong>Meaningful Action vs. Mere Activity:</strong> Moving pieces, rolling dice in games of chance, or clicking blindly does not equal agency. Actions must directly connect to a player&rsquo;s intent and meaningfully alter the state of the virtual world.</p>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Mechanical vs. Narrative Agency title -->
+        <section
+          class="impact-slide"
+          data-movement="14"
+          data-movement-name="Mechanical Agency"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-violet);">Mechanical Agency</h1>
+          </div>
+        </section>
+
+        <!-- Mechanical agency definition -->
+        <section
+          class="impact-slide"
+          data-movement="15"
+          data-movement-name="Mechanical Agency (Definition)"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>Mechanical agency is the degree to which a player&rsquo;s input visibly and legibly reshapes the game&rsquo;s internal state. It&rsquo;s agency measured in systems: does this move change what the game is, not just what it shows?</p>
+              <p>The tightest form of agency &mdash; you can point to the exact rule your action triggered.</p>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Go / Chess, cropped to the same square proportion -->
+        <section
+          class="impact-slide"
+          data-movement="16"
+          data-movement-name="Go & Chess"
+        >
+          <div class="impact-inner">
+            <div class="crop-pair">
+              <div style="background-image: url('./assets/16/FloorGoban.jpg');"></div>
+              <div style="background-image: url('./assets/16/Modern_Fianchetto_Setup._Chess_game_Staunton_No._6.jpg');"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Video embed -->
+        <section
+          data-movement="17"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/J8SBp4SyvLc?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed -->
+        <section
+          data-movement="18"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/z3_yA4HTJfs?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, muted, starting at 2:38 -->
+        <section
+          data-movement="19"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/ayC2vnT_fXY?autoplay=1&start=158&mute=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed -->
+        <section
+          data-movement="20"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/ILolesm8kFY?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Narrative Agency title -->
+        <section
+          class="impact-slide"
+          data-movement="21"
+          data-movement-name="Narrative Agency"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-cyan);">Narrative Agency</h1>
+          </div>
+        </section>
+
+        <!-- Narrative agency definition -->
+        <section
+          class="impact-slide"
+          data-movement="22"
+          data-movement-name="Narrative Agency (Definition)"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote">
+              <p>Narrative agency is the degree to which a player&rsquo;s choices shape the story, world, or meaning being told. It&rsquo;s agency measured in consequence: does this choice change what happens to me, or because of me?</p>
+              <p>The loosest, most contested form of agency &mdash; because narrative can absorb a choice without ever letting it break the story.</p>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Video embed -->
+        <section
+          data-movement="23"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/dz4K8KbKQ9w?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, starting at 54:10 -->
+        <section
+          data-movement="24"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/D2CWdaJTikQ?autoplay=1&start=3250"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed -->
+        <section
+          data-movement="25"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/okFSR8CCOPY?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed -->
+        <section
+          data-movement="26"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/fBtX0S2J32Y?autoplay=1"
+          data-background-interactive
+        ></section>
 
         <!-- Blank -- build this slide out -->
         <section></section>
