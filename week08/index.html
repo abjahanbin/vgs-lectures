@@ -4,6 +4,425 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Week 08 — Video Game Studies</title>
+    <style>
+      /* Slide 2: title-highlight cycles through the palette by default
+         (shared/theme.css) -- animation: none pins it to the single
+         --divider-color set inline instead.
+         color needs !important: shared/theme.css's `.title-highlight`
+         sets color:#0a0a0f for dark text on the highlight fill, but
+         `.reveal h1,h2,h3,h4 { color: var(--fg-heading) }` (also shared/
+         theme.css) is a class+type selector and so outranks
+         .title-highlight's single class regardless of load order -- the
+         light heading color wins instead, which is hard to read against
+         a bright fill like cyan. */
+      .impact-slide h1.static-title {
+        animation: none;
+        color: #0a0a0f !important;
+      }
+
+      /* "The Theme" title slide: keeps the default color-cycling
+         highlight from shared/theme.css (the Opening slide's h1 has no
+         .static-title, so it never overrides the animation) but sped up
+         for more excitement. Two classes (0,2,1) beats shared's
+         `.impact-slide h1` (0,1,1) on specificity alone, same approach
+         as week01's `.impact-slide.slow-highlight h1` -- no !important
+         needed, and the keyframes/timing-function/iteration-count still
+         come from the shared rule, only duration is overridden. */
+      .impact-slide.fast-highlight h1 {
+        animation-duration: 5s;
+      }
+
+      /* Slide 3: game-loop diagram, copied from week04 slide 3 (itself
+         carried over from week03 slide 10) -- see that file's comments
+         for the full rationale (circular nodes for exact tangent
+         geometry, no max-width on labels since unbreakable words
+         overflow it and mis-center, etc). */
+      .diagram-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8em;
+      }
+      .diagram-slide .loop-title {
+        margin: 0;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.9em;
+      }
+      .loop-diagram {
+        position: relative;
+        width: 420px;
+        aspect-ratio: 1 / 1;
+      }
+      .loop-diagram svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .loop-node {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 134px;
+        height: 134px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center !important;
+        background: var(--divider-color);
+        color: #0a0a0f;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.48em;
+        line-height: 1.2;
+      }
+
+      /* Slide 4: 3 stacked highlighted words, copied from week04 slide 4
+         (itself carried over from week03 slide 38) -- animation:none
+         keeps each word its own fixed color instead of all 3 cycling in
+         sync; both margin and color need !important to beat shared/
+         theme.css's h1 rules on specificity. */
+      .impact-slide h1.mda-word {
+        font-size: 1.3em;
+        white-space: nowrap;
+        animation: none;
+        margin: 0 0 0.25em 0 !important;
+        color: #0a0a0f !important;
+      }
+
+      /* Slides 5, 6 & 7: three parallel definitions side by side and the
+         nested concentric-circle diagram (the latter reused twice, once
+         with its original labels and once relabeled Rules/Play/Culture).
+         Both patterns copied from week04 slides 8 & 7 -- see that file
+         for the full rationale. */
+      .content-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+      .content-trio {
+        display: flex;
+        gap: 1.4em;
+        align-items: flex-start;
+        width: 100%;
+      }
+      .content-trio > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .content-trio h3 {
+        font-size: 0.6em !important;
+        margin: 0 0 0.35em;
+      }
+      .content-trio h3.title-highlight {
+        color: #0a0a0f;
+      }
+      .content-trio p {
+        font-size: 0.36em;
+        line-height: 1.45;
+        margin: 0;
+        color: var(--fg-color);
+      }
+
+      .rings-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .rings-diagram {
+        position: relative;
+        width: 420px;
+        height: 420px;
+      }
+      .ring {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: var(--divider-color);
+      }
+      .ring-outer { width: 420px; height: 420px; }
+      .ring-middle { width: 280px; height: 280px; }
+      .ring-inner { width: 140px; height: 140px; }
+      .ring-label {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #0a0a0f;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.48em;
+        line-height: 1.2;
+        text-align: center;
+        white-space: nowrap;
+      }
+      .ring-label-inner { top: 50%; }
+      .ring-label-middle { top: 73%; }
+      .ring-label-outer { top: 92%; }
+
+      /* Slide 7: paragraph-length quote pattern -- no slide in this deck
+         has used it yet (the quotes copied in from week04 were all
+         .impact-slide h1/blockquote already baked into those copies'
+         own markup), so the base rule is reproduced here from week04/
+         week02/week03 rather than assumed shared. */
+      .long-quote {
+        font-size: 0.5em;
+        max-width: 34em;
+        padding: 1.6em !important;
+        text-align: left;
+      }
+      .long-quote p {
+        margin: 0 0 0.9em;
+        font-style: italic;
+        line-height: 1.5;
+        color: var(--fg-color);
+      }
+      .long-quote cite {
+        display: block;
+        text-align: right;
+        font-style: normal;
+        font-size: 0.7em;
+        color: var(--accent-neutral);
+      }
+      .long-quote cite em {
+        font-style: italic;
+      }
+
+      /* Transformative Play and Representation quotes are each ~190
+         words across 2 paragraphs, far longer than the single short
+         paragraph the base .long-quote sizing above is tuned for -- that
+         sizing would run well past the slide's height here, so both get
+         a smaller/wider local override via this added class. */
+      .long-quote.quote-long {
+        font-size: 0.4em;
+        max-width: 46em;
+      }
+      .long-quote.quote-long p {
+        margin: 0 0 0.7em;
+      }
+
+      /* Slide 8: single photo + caption, using shared/theme.css's
+         .photo-caption pattern (first use in this deck). That pattern
+         itself doesn't cap width -- fine for a multi-column layout, but
+         here alone on a full slide the source image (1800x1800) would
+         otherwise render edge-to-edge, so a max-width is added locally.
+         figcaption font-size/margin need !important: shared/theme.css's
+         `.photo-caption figcaption` rule ties this selector's specificity
+         (0,1,1) exactly, and since it's injected via JS import it lands
+         after this page-local <style> in the DOM, winning on load order
+         without !important -- the same trap documented throughout this
+         project (e.g. week04's .content-trio h3). */
+      .photo-caption {
+        max-width: 440px;
+      }
+      .photo-caption figcaption {
+        text-align: center;
+        font-size: 0.26em !important;
+        margin-top: 0.15em !important;
+      }
+
+      /* Slide 15: 4-column table, new pattern -- original paraphrase of
+         Brian Sutton-Smith's seven rhetorics of play framework (as
+         summarized in Rules of Play), not a reproduction of the book's
+         own table text. CSS grid in source order (row-major) rather than
+         an actual <table> -- simpler to size/border per-cell here. */
+      .rhetoric-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6em;
+        padding: 0 1.2em;
+        box-sizing: border-box;
+      }
+      .rhetoric-slide h2 {
+        margin: 0;
+        font-family: 'Rajdhani', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 0.45em !important;
+        text-align: center;
+      }
+      .rhetoric-table,
+      .toolkit-table {
+        display: grid;
+        width: 100%;
+        max-width: 920px;
+        border: 1px solid var(--accent-neutral);
+        font-size: 0.38em;
+      }
+      .rhetoric-table {
+        grid-template-columns: 0.9fr 1.3fr 1.3fr 1.3fr;
+      }
+      .rhetoric-table > div,
+      .toolkit-table > div {
+        padding: 0.45em 0.55em;
+        border-right: 1px solid rgba(124, 135, 152, 0.35);
+        border-bottom: 1px solid rgba(124, 135, 152, 0.35);
+        line-height: 1.3;
+        color: var(--fg-color);
+      }
+      .rhetoric-table > div:nth-child(4n) {
+        border-right: none;
+      }
+      .rhetoric-table > div:nth-last-child(-n+4) {
+        border-bottom: none;
+      }
+      .rhetoric-table .head,
+      .toolkit-table .head {
+        font-family: 'Russo One', sans-serif;
+        font-size: 1.05em;
+        color: var(--accent-cyan);
+        border-bottom: 2px solid var(--accent-cyan) !important;
+      }
+      .rhetoric-table .rhetoric-name {
+        font-weight: 700;
+        color: var(--fg-heading);
+      }
+
+      /* Slide 16: 2-column variant of the table pattern above -- same
+         shared cell/head rules, different column count and left-column
+         emphasis (bold instead of the 4-column table's colored accent). */
+      .toolkit-table {
+        grid-template-columns: 1fr 1.8fr;
+      }
+      .toolkit-table > div:nth-child(2n) {
+        border-right: none;
+      }
+      .toolkit-table > div:nth-last-child(-n+2) {
+        border-bottom: none;
+      }
+      .toolkit-table .toolkit-q {
+        font-weight: 700;
+        color: var(--fg-heading);
+      }
+
+      /* Grading table (Final Project deck): same .toolkit-table base, a
+         narrower right column for point values. */
+      .toolkit-table.grading {
+        grid-template-columns: 1fr 0.3fr;
+      }
+      .toolkit-table.grading .pts {
+        text-align: center;
+        font-weight: 700;
+        color: var(--fg-heading);
+      }
+
+      /* Final Project deck: full-bleed bullet/numbered-list pattern, new
+         in this file. .list-inner centers a fixed-width left-aligned
+         text column, since flex-centering text directly reads oddly for
+         multi-line lists (each line would center independently). h2/h3
+         font-size need !important for the same load-order reason as
+         .rhetoric-slide h2 above -- reveal's own h2/h3 rules tie this
+         selector's specificity and load after this page-local <style>. */
+      .list-slide {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: var(--bottom-bar-height) !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2em;
+        box-sizing: border-box;
+      }
+      .list-inner {
+        width: 100%;
+        max-width: 820px;
+        text-align: left;
+      }
+      .list-inner h2 {
+        margin: 0 0 0.5em;
+        font-size: 0.62em !important;
+        color: var(--accent-cyan);
+      }
+      /* color needs !important here: `.list-inner h2` and shared/theme.css's
+         `.reveal h1,h2,h3,h4` both tie this element's specificity, so the
+         fg-heading/cyan color would otherwise win over title-highlight's
+         dark text -- same specificity trap as .impact-slide h1.static-title
+         above, this time because a heading inside .list-inner is getting a
+         highlight-box treatment for the first time. */
+      .list-inner h2.title-highlight {
+        color: #0a0a0f !important;
+      }
+      .list-inner h3 {
+        margin: 0 0 0.4em;
+        font-size: 0.46em !important;
+        color: var(--fg-heading);
+      }
+      .list-inner .subhead {
+        display: block;
+        margin: -0.3em 0 0.6em;
+        font-size: 0.4em;
+        font-style: italic;
+        color: var(--accent-neutral);
+      }
+      .list-inner p {
+        margin: 0 0 0.5em;
+        font-size: 0.42em;
+        line-height: 1.5;
+        color: var(--fg-color);
+      }
+      .list-inner ul,
+      .list-inner ol {
+        margin: 0 0 0.5em;
+        padding-left: 1.1em;
+        font-size: 0.42em;
+        line-height: 1.5;
+        color: var(--fg-color);
+      }
+      .list-inner li {
+        margin-bottom: 0.35em;
+      }
+      .list-inner li ul {
+        margin-top: 0.3em;
+        margin-bottom: 0;
+        font-size: 1em;
+      }
+      .list-inner ul.tight li {
+        margin-bottom: 0.12em;
+      }
+      .list-inner .closing {
+        font-style: italic;
+        font-size: 0.4em;
+        color: var(--accent-neutral);
+        margin-top: 0.3em;
+      }
+      /* Self-contained text-align (not relied on from a parent) so this
+         drops into either .impact-inner or .list-inner without caring
+         which. */
+      .big-statement {
+        font-size: 0.6em;
+        max-width: 26em;
+        font-weight: 700;
+        line-height: 1.4;
+        text-align: center;
+        color: var(--fg-heading);
+        margin: 0 auto;
+      }
+    </style>
   </head>
   <body>
     <div class="reveal">
@@ -22,7 +441,529 @@
           </div>
         </section>
 
-        <!-- Blank -- build this slide out -->
+        <!-- Recap title -->
+        <section
+          class="impact-slide"
+          data-movement="2"
+          data-movement-name="Formalist Game Design"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-cyan);">Formalist Game Design</h1>
+          </div>
+        </section>
+
+        <!-- Copy of week04 slide 3 -->
+        <section
+          class="diagram-slide"
+          data-movement="3"
+          data-movement-name="Game Loops"
+        >
+          <h2 class="loop-title">Game Loops</h2>
+          <div class="loop-diagram">
+            <svg viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="loop-arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 Z" fill="#e8e8ec" />
+                </marker>
+              </defs>
+              <!-- Clockwise: Player Action -> System Response -> Feedback -> Player Action -->
+              <path d="M 337.6,104.3 A 170,170 0 0,1 420.0,247.0" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+              <path d="M 332.4,398.7 A 170,170 0 0,1 167.6,398.7" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+              <path d="M 80.0,253.0 A 170,170 0 0,1 162.5,104.3" fill="none" stroke="#e8e8ec" stroke-width="6" marker-end="url(#loop-arrowhead)" />
+            </svg>
+            <div class="loop-node" style="left: 50%; top: 16%; --divider-color: var(--accent-magenta);"><span class="loop-node-text">Player<br />Action</span></div>
+            <div class="loop-node" style="left: 79.4%; top: 67%; --divider-color: var(--accent-cyan);"><span class="loop-node-text">System<br />Response</span></div>
+            <div class="loop-node" style="left: 20.6%; top: 67%; --divider-color: var(--accent-lime);"><span class="loop-node-text">Feedback</span></div>
+          </div>
+        </section>
+
+        <!-- Copy of week04 slide 4 -->
+        <section
+          class="impact-slide"
+          data-movement="4"
+          data-movement-name="MDA"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-magenta);">Mechanics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-cyan);">Dynamics</h1>
+            <h1 class="title-highlight mda-word" style="--divider-color: var(--accent-lime);">Aesthetics</h1>
+          </div>
+        </section>
+
+        <!-- Copy of week04 slide 8 -->
+        <section
+          class="content-slide"
+          data-movement="5"
+          data-movement-name="Rules, Play, Culture"
+        >
+          <div class="content-trio">
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-magenta);">Rules</h3>
+              <p>The organization of the designed system.</p>
+            </div>
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-cyan);">Play</h3>
+              <p>The human experience of that system.</p>
+            </div>
+            <div>
+              <h3 class="title-highlight" style="--divider-color: var(--accent-lime);">Culture</h3>
+              <p>The larger contexts engaged with and inhabited by the system.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Nested Rules/Play/Culture, copy of the Nested Categories of
+             Play rings diagram below with this slide's (trio) labels -->
+        <section
+          class="rings-slide"
+          data-movement="6"
+          data-movement-name="Rules, Play, Culture (Nested)"
+        >
+          <div class="rings-diagram">
+            <div class="ring ring-outer" style="--divider-color: var(--accent-lime);"></div>
+            <div class="ring ring-middle" style="--divider-color: var(--accent-cyan);"></div>
+            <div class="ring ring-inner" style="--divider-color: var(--accent-magenta);"></div>
+            <span class="ring-label ring-label-inner">Rules</span>
+            <span class="ring-label ring-label-middle">Play</span>
+            <span class="ring-label ring-label-outer">Culture</span>
+          </div>
+        </section>
+
+        <!-- Transformative Play quote -->
+        <section
+          class="impact-slide"
+          data-movement="7"
+          data-movement-name="Transformative Play"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote quote-long">
+              <p>&ldquo;When play occurs, it can overflow and overwhelm the more rigid structure in which it is taking place, generating emergent, unpredictable results. Sometimes, in fact, the force of play is so powerful that it can change the structure itself. As philosopher James S. Hans notes, &lsquo;The role of play is not to work comfortably within its own structures but rather constantly to develop its structures through play.&rsquo; A playful slang term can become an idiom, for example, and may eventually be adopted into the dictionary, becoming part of the larger cultural structures it originally resisted. We call this important form of play transformative play.</p>
+              <p>Transformative play is a special case of play that occurs when the free movement of play alters the more rigid structure in which it takes shape. The play doesn&rsquo;t just occupy and oppose the interstices of the system, but actually transforms the space as a whole. A cyberfeminist game patch that creates transsexual versions of Lara Croft is an example of transformative play, as is the use of the Quake game engine as a movie-making tool.&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- How a Game Positions Itself Culturally title -->
+        <section
+          class="impact-slide"
+          data-movement="8"
+          data-movement-name="How a Game Positions Itself Culturally"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-magenta);">How a Game Positions<br />Itself Culturally</h1>
+          </div>
+        </section>
+
+        <!-- The Landlord's Game photo + caption -->
+        <section
+          class="impact-slide"
+          data-movement="9"
+          data-movement-name="The Landlord's Game"
+        >
+          <div class="impact-inner">
+            <figure class="photo-caption">
+              <img src="./assets/Monopoly/xcqg1zvugk9e1.png" alt="The Landlord's Game board, 1904" />
+              <figcaption>&lsquo;The Landlord&rsquo;s Game&rsquo; by Elizabeth Magie (1904)</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <!-- Video embed -->
+        <section
+          data-movement="10"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/mkAcX4Lw7Is?autoplay=1"
+          data-background-interactive
+        ></section>
+
+        <!-- Representation quote -->
+        <section
+          class="impact-slide"
+          data-movement="11"
+          data-movement-name="Representation"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote quote-long">
+              <p>&ldquo;Game play takes place within a representational universe, filled with depictions of objects, interactions, and ideas out of which a player makes meaning. In Rock-Paper-Scissors a fist means &lsquo;rock,&rsquo; an outstretched hand means &lsquo;paper,&rsquo; and two fingers spread in a V-shape means &lsquo;scissors.&rsquo; In the game of Mafia, an assassin&rsquo;s hand gesture that points to another player represents &lsquo;kill!&rsquo; and the act of keeping one&rsquo;s eyes closed &lsquo;at night&rsquo; marks a player as &lsquo;villager.&rsquo; In a first-person shooter, the gun barrel emerging out of the bottom of the screen represents not only &lsquo;a big-ass gun,&rsquo; but also denotes &lsquo;you,&rsquo; the player.</p>
+              <p>To play a game is to rely on and interact with representations the game generates. This intersection between representation, meaning, and play raises a series of important game design questions. How does a player experience the representation of a game? What is the relationship between a game representation and the &lsquo;real world?&rsquo; What modes of representation can games provide?&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Video embed, starting at 0:45 -->
+        <section
+          data-movement="12"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/BQwohHgrk2s?autoplay=1&start=45"
+          data-background-interactive
+        ></section>
+
+        <!-- Games as Cultural Rhetoric title -->
+        <section
+          class="impact-slide"
+          data-movement="13"
+          data-movement-name="Games as Cultural Rhetoric"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-lime);">Games as Cultural Rhetoric</h1>
+          </div>
+        </section>
+
+        <!-- Basketball / cultural structures quote -->
+        <section
+          class="impact-slide"
+          data-movement="14"
+          data-movement-name="Cultural Structures"
+        >
+          <div class="impact-inner">
+            <blockquote class="long-quote quote-long">
+              <p>&ldquo;Any game that establishes a strong presence in culture immediately engages with innumerable cultural structures. Take Basketball, for example. With what contexts outside of the magic circle does the game connect? We could consider the roles of players, coaches, referees, cheerleaders, or fans, each of whom affects the cultural identity and experience of the game. There is the physical context of the arena to consider, as well as the roles of the vendors, technicians, ticket scalpers, and mascots. What about the context of the media, including television and radio announcers, newspapers, satellite broadcasting, and Pay-Per-View TV? Or the economics that make the game possible, from ticket and licensed t-shirts sales to the negotiation of player salaries? Then there are the professional organizations that regulate and administrate the game.</p>
+              <p>For fans or players of the game, Basketball can also be a context for establishing social status, group affiliation, cultural identity, or access to a college education. Every one of these elements contributes to the overall cultural significance of the game. Whether players and spectators realize it or not, when they play or watch a game they are taking part in generating, embodying, and transforming these cultural meanings. These meanings are not fixed, but are always in some way &lsquo;at play&rsquo; within existing cultural structures.&rdquo;</p>
+              <cite>&mdash; Katie Salen &amp; Eric Zimmerman, <em>Rules of Play</em> (2003)</cite>
+            </blockquote>
+          </div>
+        </section>
+
+        <!-- Sutton-Smith's Seven Rhetorics of Play, original paraphrase
+             (not a reproduction of the book's own table) -->
+        <section
+          class="rhetoric-slide"
+          data-movement="15"
+          data-movement-name="Seven Rhetorics of Play"
+        >
+          <h2>Brian Sutton-Smith&rsquo;s Seven Rhetorics of Play</h2>
+          <div class="rhetoric-table">
+            <div class="head">Rhetoric</div>
+            <div class="head">Core Idea</div>
+            <div class="head">Associated With</div>
+            <div class="head">Where We See It</div>
+
+            <div class="rhetoric-name">Progress</div>
+            <div>Play as learning and development</div>
+            <div>Child development, education</div>
+            <div>Classrooms, developmental psychology</div>
+
+            <div class="rhetoric-name">Fate</div>
+            <div>Play as chance and destiny</div>
+            <div>Gambling, games of chance</div>
+            <div>Casinos, lotteries</div>
+
+            <div class="rhetoric-name">Power</div>
+            <div>Play as contest and strategy</div>
+            <div>Sports, rivalry, war games</div>
+            <div>Athletics, competitive play</div>
+
+            <div class="rhetoric-name">Identity</div>
+            <div>Play as community and tradition</div>
+            <div>Festivals, rituals, group belonging</div>
+            <div>Carnivals, cultural celebrations</div>
+
+            <div class="rhetoric-name">The Imaginary</div>
+            <div>Play as creativity and fantasy</div>
+            <div>Art, improvisation, make-believe</div>
+            <div>Storytelling, pretend play</div>
+
+            <div class="rhetoric-name">The Self</div>
+            <div>Play as personal fulfillment</div>
+            <div>Leisure, individual experience</div>
+            <div>Hobbies, extreme sports</div>
+
+            <div class="rhetoric-name">Frivolity</div>
+            <div>Play as foolishness and subversion</div>
+            <div>Trickster figures, &lsquo;fooling around&rsquo;</div>
+            <div>Carnival clowns, absurdist play</div>
+          </div>
+        </section>
+
+        <!-- Toolkit questions, no title -->
+        <section
+          class="rhetoric-slide"
+          data-movement="16"
+          data-movement-name="Toolkit Questions"
+        >
+          <div class="toolkit-table">
+            <div class="head">Toolkit Question</div>
+            <div class="head">What It Often Reveals</div>
+
+            <div class="toolkit-q">Verbs (what you can and can&rsquo;t do)</div>
+            <div>Power (attack, conquer), Imaginary (build, create), Frivolity (honk, knock things over)</div>
+
+            <div class="toolkit-q">Rewards (what the game counts)</div>
+            <div>Progress (XP, levels, streaks), Fate (random drops), Power (kills, rank)</div>
+
+            <div class="toolkit-q">Identity (who you are, who the enemy is, who&rsquo;s missing)</div>
+            <div>Power (us vs. them), Identity (team, nation, community), Self (solitary hero)</div>
+
+            <div class="toolkit-q">Paratext (marketing, box art, sponsors)</div>
+            <div>Often contradicts the gameplay: a game marketed as Identity (&ldquo;play with friends&rdquo;) can play as Power</div>
+          </div>
+        </section>
+
+        <!-- Video embed, starting at 1:17:28 -->
+        <section
+          data-movement="17"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/hYcotDHI0dg?autoplay=1&start=4648"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, starting at 1:00 -->
+        <section
+          data-movement="18"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/7QZ1cxdO-Hw?autoplay=1&start=60"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, starting at 47:26 -->
+        <section
+          data-movement="19"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/2yqyK3ml6J8?autoplay=1&start=2846"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, starting at 1:06 -->
+        <section
+          data-movement="20"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/VDYmc2iGaOM?autoplay=1&start=66"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, starting at 2:49 -->
+        <section
+          data-movement="21"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/VoeFzkyG02Q?autoplay=1&start=169"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, starting at 32:45 -->
+        <section
+          data-movement="22"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/EwwW4Rk1wMU?autoplay=1&start=1965"
+          data-background-interactive
+        ></section>
+
+        <!-- Video embed, starting at 3:00 -->
+        <section
+          data-movement="23"
+          data-movement-name="Video"
+          data-background-iframe="https://www.youtube.com/embed/eg3jL3V7JCI?autoplay=1&start=180"
+          data-background-interactive
+        ></section>
+
+        <!-- Rhetoric Swap title -->
+        <section
+          class="impact-slide"
+          data-movement="24"
+          data-movement-name="Rhetoric Swap"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-violet);">Rhetoric Swap</h1>
+          </div>
+        </section>
+
+        <!-- Copy of slide 9 -->
+        <section
+          class="impact-slide"
+          data-movement="25"
+          data-movement-name="The Landlord's Game"
+        >
+          <div class="impact-inner">
+            <figure class="photo-caption">
+              <img src="./assets/Monopoly/xcqg1zvugk9e1.png" alt="The Landlord's Game board, 1904" />
+              <figcaption>&lsquo;The Landlord&rsquo;s Game&rsquo; by Elizabeth Magie (1904)</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <!-- Blank -->
+        <section></section>
+
+        <!-- Final Project title -->
+        <section
+          class="impact-slide"
+          data-movement="26"
+          data-movement-name="Final Project"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight static-title" style="--divider-color: var(--accent-magenta);">Final Project</h1>
+          </div>
+        </section>
+
+        <!-- Where We've Been -->
+        <section
+          class="list-slide"
+          data-movement="27"
+          data-movement-name="Where We&#39;ve Been"
+        >
+          <div class="list-inner">
+            <h2>Where We&rsquo;ve Been</h2>
+            <ul>
+              <li><strong>Project 1:</strong> You wrote choice (<em>Twine</em>)</li>
+              <li><strong>Project 2:</strong> You built movement, levels, and loops (<em>Unity</em>)</li>
+              <li>So far, story and mechanics have lived in separate files</li>
+              <li>The final project fuses them</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- The Rules -->
+        <section
+          class="list-slide"
+          data-movement="28"
+          data-movement-name="The Rules"
+        >
+          <div class="list-inner">
+            <h2>The Rules</h2>
+            <ul>
+              <li>Teams of up to 3 (solo allowed)</li>
+              <li>One theme. One rhetoric. Two weeks to the pitch.</li>
+              <li>The team you pitch with is the team you build with</li>
+              <li><em>Evidence, not adjectives</em></li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- The Theme title -->
+        <section
+          class="impact-slide fast-highlight"
+          data-movement="29"
+          data-movement-name="The Theme"
+        >
+          <div class="impact-inner">
+            <h1 class="title-highlight">The Theme</h1>
+          </div>
+        </section>
+
+        <!-- The Theme: Not Your Story -->
+        <section
+          class="list-slide"
+          data-movement="30"
+          data-movement-name="The Theme: Not Your Story"
+        >
+          <div class="list-inner">
+            <span class="subhead" style="margin: 0 0 0.3em;">The Theme</span>
+            <h2 class="title-highlight" style="--divider-color: var(--accent-magenta);">Not Your Story</h2>
+            <p style="margin-top: 0.6em;">Somewhere, a hero is saving the world. <strong>You are not that hero.</strong></p>
+            <p>The henchman guarding the door. The shopkeeper who sells the sword. The villager who gets rescued. The janitor after the boss fight. The NPC standing exactly where the level designer put you.</p>
+          </div>
+        </section>
+
+        <!-- Ways to Read It -->
+        <section
+          class="list-slide"
+          data-movement="31"
+          data-movement-name="Ways to Read It"
+        >
+          <div class="list-inner">
+            <h2>Ways to Read It</h2>
+            <ul>
+              <li><strong>Literal:</strong> a side character in a familiar genre</li>
+              <li><strong>Personal:</strong> living inside someone else&rsquo;s plan for your life</li>
+              <li><strong>Systemic:</strong> a world built for a player who isn&rsquo;t you</li>
+              <li><strong>Formal:</strong> a game that won&rsquo;t let you be the protagonist of your own mechanics</li>
+            </ul>
+            <p class="closing">The only wrong interpretation is one we can&rsquo;t find in your rules.</p>
+          </div>
+        </section>
+
+        <!-- Choose Your Rhetoric -->
+        <section
+          class="list-slide"
+          data-movement="32"
+          data-movement-name="Choose Your Rhetoric"
+        >
+          <div class="list-inner">
+            <h2>Choose Your Rhetoric</h2>
+            <span class="subhead">Sutton-Smith&rsquo;s seven rhetorics of play:</span>
+            <ul class="tight">
+              <li>Progress</li>
+              <li>Fate</li>
+              <li>Power</li>
+              <li>Identity</li>
+              <li>The Imaginary</li>
+              <li>The Self</li>
+              <li>Frivolity</li>
+            </ul>
+            <p class="closing">Design toward it, or critique and subvert it, but show it working in your rules.</p>
+          </div>
+        </section>
+
+        <!-- Built for Subversion -->
+        <section
+          class="list-slide"
+          data-movement="33"
+          data-movement-name="Built for Subversion"
+        >
+          <div class="list-inner">
+            <h2>Built for Subversion</h2>
+            <p>Most rhetorics assume the player is the center of the story.</p>
+            <ul>
+              <li><strong>Power</strong> assumes you&rsquo;re the one winning</li>
+              <li><strong>Progress</strong> assumes you&rsquo;re the one leveling up</li>
+              <li><strong>The Self</strong> assumes the experience is about you</li>
+            </ul>
+            <p class="closing">What does Power look like for the minion who never gets promoted?<br />Pick a rhetoric, then look at it from the edge of the frame.</p>
+          </div>
+        </section>
+
+        <!-- The Core Requirement: A Playable Choice -->
+        <section
+          class="list-slide"
+          data-movement="34"
+          data-movement-name="The Core Requirement: A Playable Choice"
+        >
+          <div class="list-inner">
+            <h2>The Core Requirement: <em>A Playable Choice</em></h2>
+            <ul>
+              <li>At least one true narrative choice</li>
+              <li>Made through play, not through a menu</li>
+              <li>Uses tools like items, timers, buttons, goals, and pathways</li>
+            </ul>
+            <p>&#10060; &ldquo;Save the village? Yes / No&rdquo;</p>
+            <p>&#9989; Reaching the village before the timer runs out because you took the dangerous upper path</p>
+          </div>
+        </section>
+
+        <!-- The Pitch Format -->
+        <section
+          class="list-slide"
+          data-movement="35"
+          data-movement-name="The Pitch Format"
+        >
+          <div class="list-inner">
+            <h2>The Pitch Format</h2>
+            <ul>
+              <li>8&ndash;10 minutes, plus 3 minutes of Q&amp;A</li>
+              <li>Every team member speaks</li>
+              <li><em>More information on Canvas</em></li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- Key Dates -->
+        <section
+          class="list-slide"
+          data-movement="36"
+          data-movement-name="Key Dates"
+        >
+          <div class="list-inner">
+            <h2>Key Dates</h2>
+            <ul>
+              <li><strong>Pitch Day:</strong> October 30, 2026</li>
+              <li><strong>Final Game:</strong> end of semester</li>
+            </ul>
+            <p class="closing">Start talking to potential teammates today.</p>
+          </div>
+        </section>
+
+        <!-- Blank -->
         <section></section>
 
       </div>
