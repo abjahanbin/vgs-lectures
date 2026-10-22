@@ -538,6 +538,106 @@
         color: var(--accent-neutral);
       }
 
+      /* "Not Your Story": pulsing ring over Icarus's legs, revealed as a
+         fragment. Positioned in percent of the image's own box (not the
+         slide) so it tracks the image regardless of display size --
+         coordinates found by cropping/zooming the source JPEG directly. */
+      .icarus-frame {
+        position: relative;
+      }
+      .icarus-ring {
+        position: absolute;
+        left: 85%;
+        top: 74%;
+        width: 9%;
+        aspect-ratio: 1 / 1;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        border: 3px solid var(--accent-lime);
+        box-shadow: 0 0 10px 2px var(--accent-orange);
+        pointer-events: none;
+        animation: icarus-pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes icarus-pulse {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
+        50% { transform: translate(-50%, -50%) scale(1.18); opacity: 0.85; }
+      }
+
+      /* Shared "Reset" key-art treatment (Piranesi, Carceri), reused on the
+         Ch6 title slide and the "12. Paratext" store card: a cold-graded
+         cover crop with a warm off-center lantern-glow overlay. The
+         graded/glow look is the "exact treatment" the images prompt asks
+         to share -- the overlaid RESET wordmark is opt-in per instance via
+         .key-art-title, since the store card already has its own heading. */
+      .key-art-reset {
+        position: relative;
+        overflow: hidden;
+        border-radius: 4px;
+      }
+      .key-art-reset img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(0.4) contrast(1.1) brightness(0.7);
+      }
+      .key-art-reset::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: rgba(40, 70, 120, 0.35);
+        mix-blend-mode: multiply;
+      }
+      .key-art-reset::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background: radial-gradient(circle at 28% 78%, rgba(255, 170, 60, 0.4) 0%, rgba(255, 170, 60, 0) 55%);
+      }
+      .key-art-reset .key-art-title {
+        position: absolute;
+        left: 50%;
+        bottom: 0.4em;
+        transform: translateX(-50%);
+        margin: 0;
+        z-index: 2;
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.85em;
+        letter-spacing: 0.12em;
+        color: #f5f5f7;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+      }
+
+      /* Small muted image-credit line, used wherever a Met/Rijksmuseum
+         image appears (the Bruegel caption already covers its own credit). */
+      .img-credit {
+        font-size: 0.25em;
+        color: var(--accent-neutral);
+        text-align: center;
+        margin: 0.4em 0 0;
+      }
+
+      /* "11. Look & Assets" mood board: 3x2 cover-cropped image grid. */
+      .mood-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.4em;
+        width: 100%;
+        max-width: 560px;
+      }
+      .mood-grid img {
+        display: block;
+        width: 100%;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 4px;
+      }
+      .mood-grid .cool-grade {
+        filter: grayscale(0.4) contrast(1.1) brightness(0.75);
+      }
+
       /* Ch5: shared mini-map glyph system, reused on slides 29-33 (one per
          archetype) and slide 46 (Ch6 Level Sketch). Rooms/corridors are
          plain absolutely-positioned divs inside a fixed 300x200 box;
@@ -1465,7 +1565,13 @@
           data-movement="5"
           data-movement-name="Character First"
         >
-          <div class="img-placeholder" style="width: 560px; height: 260px;">IMAGE: a frame where the hero is out of focus / cropped and a background character is sharp</div>
+          <figure class="photo-caption" style="max-width: 620px;">
+            <div class="icarus-frame">
+              <img src="./assets/not-your-story/bruegel-fall-of-icarus.jpg" alt="Bruegel, Landscape with the Fall of Icarus" />
+              <span class="icarus-ring fragment"></span>
+            </div>
+            <figcaption>Bruegel, <em>Landscape with the Fall of Icarus</em>. The hero&rsquo;s story is the splash in the corner.</figcaption>
+          </figure>
           <p class="note-line">You are never the hero. You&rsquo;re at the edge of the frame.</p>
         </section>
 
@@ -1886,7 +1992,11 @@
           data-movement-name="One Concept, Start to Finish"
         >
           <p class="line-statement" style="text-align: center; max-width: 36em;">The hero cleared the dungeon last night. You&rsquo;re the caretaker, and you have until dawn to put it all back.</p>
-          <div class="img-placeholder" style="width: 420px; height: 190px;">IMAGE: key art &mdash; mop + key ring in lantern light</div>
+          <div class="key-art-reset" style="width: 560px; height: 230px;">
+            <img src="./assets/reset/piranesi-pier-with-chains.jpg" alt="Piranesi, The Pier with Chains, from the Carceri (ca. 1749&ndash;50)" />
+            <h1 class="key-art-title">RESET</h1>
+          </div>
+          <p class="img-credit">Piranesi, <em>Carceri</em> (ca. 1749&ndash;50); The Met, public domain.</p>
         </section>
 
         <!-- 37. 1. Title & Logline -->
@@ -2149,7 +2259,15 @@
             <span class="section-badge">11</span>
             <h2 class="title-highlight" style="--divider-color: var(--accent-cyan);">Look &amp; Assets</h2>
           </div>
-          <div class="img-placeholder" style="width: 420px; height: 170px;">IMAGE: mood board</div>
+          <div class="mood-grid">
+            <img class="cool-grade" src="./assets/reset/piranesi-sawhorse.jpg" alt="Piranesi, The Sawhorse, from the Carceri (ca. 1749&ndash;50)" />
+            <img src="./assets/reset/lantern-1770.jpg" alt="Lantern, ca. 1770" />
+            <img src="./assets/reset/key-17c.jpg" alt="Key, 17th century" />
+            <img src="./assets/reset/maid-sweeping.jpg" alt="Louis Henri de Fontenay, Maid Sweeping the Hallway of a House, 1837" />
+            <img src="./assets/reset/lantern.jpg" alt="Lantern, 1700&ndash;1900" />
+            <img src="./assets/reset/key-double-ended.jpg" alt="Double-ended key, mid-17th century" />
+          </div>
+          <p class="img-credit">Piranesi, <em>Carceri</em> (ca. 1749&ndash;50); objects: The Met, public domain; de Fontenay (1837): Rijksmuseum, public domain.</p>
           <div class="palette-row">
             <div class="palette-swatch" style="background: #ffb347;"></div>
             <div class="palette-swatch" style="background: #ff8c1a;"></div>
@@ -2171,8 +2289,11 @@
           </div>
           <div class="store-card">
             <h3 class="title-highlight static-title" style="--divider-color: var(--accent-cyan);">Reset</h3>
-            <div class="img-placeholder" style="height: 150px; margin-top: 0.4em;">IMAGE: key art</div>
+            <div class="key-art-reset" style="height: 150px; margin-top: 0.4em;">
+              <img src="./assets/reset/piranesi-pier-with-chains.jpg" alt="Piranesi, The Pier with Chains, from the Carceri (ca. 1749&ndash;50)" />
+            </div>
             <p class="tagline">&ldquo;Every legend leaves a mess.&rdquo;</p>
+            <p class="img-credit">Piranesi, <em>Carceri</em> (ca. 1749&ndash;50); The Met, public domain.</p>
           </div>
         </section>
 
