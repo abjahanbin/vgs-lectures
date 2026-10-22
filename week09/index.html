@@ -274,6 +274,13 @@
         margin: 0;
         font-size: 0.55em;
       }
+      /* Movement material: "Pick a Precedent" closes with a title-highlight
+         h2 inside .table-slide -- needs the same color fix as the other
+         *-slide containers' h2.title-highlight uses (reveal's own h2 color
+         rule ties this selector's specificity and wins on load order). */
+      .table-slide h2.title-highlight {
+        color: #0a0a0f !important;
+      }
       .table-slide .lead {
         margin: 0;
         font-family: 'Russo One', sans-serif;
@@ -905,13 +912,13 @@
         color: #1a1a1a;
         width: 860px;
         max-width: 100%;
-        padding: 0.7em 1em;
+        padding: 0.6em 1em;
         box-sizing: border-box;
-        font-size: 0.3em;
-        line-height: 1.4;
+        font-size: 0.27em;
+        line-height: 1.35;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0.35em 1.4em;
+        gap: 0.3em 1.4em;
       }
       .doc-card .doc-title {
         grid-column: 1 / -1;
@@ -976,6 +983,63 @@
         font-weight: 700;
         line-height: 1.7;
         margin: 0;
+      }
+
+      /* Movement material: "Movement Builds the World" 3-panel diagram. */
+      .move-panels {
+        display: flex;
+        gap: 1.2em;
+        width: 100%;
+        max-width: 920px;
+      }
+      .move-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25em;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .move-panel svg {
+        width: 100%;
+        height: auto;
+      }
+      .move-panel .panel-label {
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.32em;
+        color: var(--fg-heading);
+      }
+      .move-panel .panel-caption {
+        font-size: 0.28em;
+        color: var(--accent-neutral);
+        text-align: center;
+      }
+
+      /* Movement material: small movement-mode tag pill shown on each Ch5
+         archetype map, and reused life-size inside .mm-legend so it reads
+         as part of the same glyph system. */
+      .mm-move-tag {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        padding: 0.15em 0.4em;
+        border: 1px solid var(--accent-orange);
+        border-radius: 3px;
+        background: rgba(10, 10, 15, 0.8);
+        color: var(--accent-orange);
+        font-family: 'Russo One', sans-serif;
+        font-size: 9px;
+        line-height: 1.4;
+      }
+      .mm-legend .legend-move-tag {
+        display: inline-block;
+        padding: 0.1em 0.35em;
+        border: 1px solid var(--accent-orange);
+        border-radius: 3px;
+        color: var(--accent-orange);
+        font-family: 'Russo One', sans-serif;
+        font-size: 0.9em;
+        line-height: 1.3;
       }
     </style>
   </head>
@@ -1149,7 +1213,7 @@
             <div class="menu-group" style="--divider-color: var(--accent-cyan);">
               <h3>Physical</h3>
               <div class="menu-grid">
-                <div class="menu-tile"><span class="tile-name">Movement</span><span class="tile-desc">Walk, run, climb</span></div>
+                <div class="menu-tile"><span class="tile-name">Movement</span><span class="tile-desc">Pick ONE mode: walk / jump / hover / fly</span></div>
                 <div class="menu-tile"><span class="tile-name">Rooms</span><span class="tile-desc">Spaces to connect</span></div>
                 <div class="menu-tile"><span class="tile-name">Gates</span><span class="tile-desc">Block a path</span></div>
                 <div class="menu-tile"><span class="tile-name">Keys</span><span class="tile-desc">Open a gate</span></div>
@@ -1445,6 +1509,100 @@
           <p class="caption-line">What you can&rsquo;t do is part of the argument.</p>
         </section>
 
+        <!-- How Do You Move? (movement mode material) -->
+        <section
+          class="table-slide"
+          data-movement="5"
+          data-movement-name="Character First"
+        >
+          <h2>How Do You Move?</h2>
+          <p class="lead" style="--divider-color: var(--accent-orange);">Movement is your first and biggest verb.</p>
+          <table class="vgs-table" style="--divider-color: var(--accent-orange);">
+            <thead>
+              <tr><th>Mode</th><th>Precedent</th><th>What the Level Needs</th></tr>
+            </thead>
+            <tbody>
+              <tr class="fragment"><td class="bright">Walk only</td><td><em>Untitled Goose Game</em>, <em>Night in the Woods</em></td><td>walls, doors, and people are the obstacles, not gaps</td></tr>
+              <tr class="fragment"><td class="bright">Jump</td><td><em>Super Mario Bros.</em>, <em>Celeste</em></td><td>gaps and ledges tuned to your jump height and distance</td></tr>
+              <tr class="fragment"><td class="bright">Hover / Glide</td><td><em>Kirby</em>, Yoshi&rsquo;s flutter, <em>Breath of the Wild</em>&rsquo;s paraglider</td><td>long drops, updrafts, landing targets</td></tr>
+              <tr class="fragment"><td class="bright">Fly</td><td><em>Journey</em>, <em>Sky</em></td><td>ceilings, enclosed rooms, gates that block the whole opening</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Movement Builds the World (movement mode material) -->
+        <section
+          class="diagram-slide"
+          data-movement="5"
+          data-movement-name="Character First"
+        >
+          <h2>Movement Builds the World</h2>
+          <div class="move-panels">
+            <div class="move-panel fragment">
+              <span class="panel-label">Walker</span>
+              <svg viewBox="0 0 280 170" preserveAspectRatio="xMidYMid meet">
+                <rect x="0" y="140" width="80" height="20" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="150" y="120" width="70" height="40" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="230" y="90" width="50" height="70" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="226" y="50" width="8" height="42" fill="#ff2bd6" />
+                <path d="M40,130 L80,130" fill="none" stroke="#e8e8ec" stroke-width="2.5" stroke-dasharray="4 4" />
+                <path d="M83,123 L95,135 M95,123 L83,135" stroke="#ff2bd6" stroke-width="3" />
+                <polygon points="25,120 25,140 48,130" fill="#e8e8ec" />
+              </svg>
+              <span class="panel-caption">Needs a bridge or a door</span>
+            </div>
+            <div class="move-panel fragment">
+              <span class="panel-label">Jumper</span>
+              <svg viewBox="0 0 280 170" preserveAspectRatio="xMidYMid meet">
+                <rect x="0" y="140" width="80" height="20" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="150" y="120" width="70" height="40" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="230" y="90" width="50" height="70" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="226" y="50" width="8" height="42" fill="#ff2bd6" />
+                <path d="M40,130 Q110,60 185,118 L205,118" fill="none" stroke="#e8e8ec" stroke-width="2.5" stroke-dasharray="4 4" />
+                <path d="M208,111 L220,123 M220,111 L208,123" stroke="#ff2bd6" stroke-width="3" />
+                <polygon points="25,120 25,140 48,130" fill="#e8e8ec" />
+              </svg>
+              <span class="panel-caption">Gap tuned to the jump</span>
+            </div>
+            <div class="move-panel fragment">
+              <span class="panel-label">Flyer</span>
+              <svg viewBox="0 0 280 170" preserveAspectRatio="xMidYMid meet">
+                <rect x="0" y="140" width="80" height="20" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="150" y="120" width="70" height="40" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="230" y="90" width="50" height="70" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+                <rect x="226" y="50" width="8" height="42" fill="#ff2bd6" />
+                <path d="M40,125 Q140,15 255,75" fill="none" stroke="#e8e8ec" stroke-width="2.5" stroke-dasharray="4 4" />
+                <circle cx="255" cy="75" r="5" fill="#c6ff33" />
+                <polygon points="25,115 25,135 48,125" fill="#e8e8ec" />
+              </svg>
+              <span class="panel-caption">Gate needs a ceiling</span>
+            </div>
+          </div>
+          <p class="note-line" style="margin-top: 0.3em;">Pick the movement first. It decides your level.</p>
+          <p class="note-line small">(This is what Project 2 was about.)</p>
+        </section>
+
+        <!-- Pick a Precedent (movement mode material) -->
+        <section
+          class="table-slide"
+          data-movement="5"
+          data-movement-name="Character First"
+        >
+          <h2>Pick a Precedent</h2>
+          <p class="lead" style="--divider-color: var(--accent-orange);">Name one game whose movement yours feels like, and borrow its metrics.</p>
+          <table class="vgs-table" style="--divider-color: var(--accent-orange);">
+            <thead>
+              <tr><th>The Hero</th><th>You</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Sprint</td><td>Walk</td></tr>
+              <tr><td>Double-jump</td><td>Carry</td></tr>
+              <tr><td>Dash</td><td>Short hop</td></tr>
+            </tbody>
+          </table>
+          <h2 class="title-highlight" style="--divider-color: var(--accent-orange); font-size: 0.4em; margin: 0; max-width: 24em; text-align: center;">The hero gets the double-jump. What do you get?</h2>
+        </section>
+
         <!-- 26. Takeaway -->
         <section
           class="impact-slide"
@@ -1452,7 +1610,7 @@
           data-movement-name="Character First"
         >
           <div class="impact-inner">
-            <h2 class="title-highlight" style="--divider-color: var(--accent-orange);">Pick the character before the mechanics.</h2>
+            <h2 class="title-highlight" style="--divider-color: var(--accent-orange);">Pick the character before the mechanics, and the movement before the map.</h2>
           </div>
         </section>
 
@@ -1502,6 +1660,7 @@
           <div class="archetype-slide">
             <div class="archetype-map-col">
               <div class="minimap">
+                <span class="mm-move-tag">WALK</span>
                 <div class="mm-corridor" style="left: 65px; top: 92px; width: 30px; height: 10px;"></div>
                 <div class="mm-corridor" style="left: 117px; top: 55px; width: 10px; height: 15px;"></div>
                 <div class="mm-corridor" style="left: 150px; top: 92px; width: 30px; height: 10px;"></div>
@@ -1525,6 +1684,7 @@
                 <span class="legend-item"><span class="legend-swatch" style="background: var(--accent-orange);"></span>Item</span>
                 <span class="legend-item"><span class="legend-swatch" style="background: none; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--fg-heading);"></span>Start</span>
                 <span class="legend-item"><span style="color: var(--accent-lime); font-size: 0.9em;">&#9733;</span>Goal</span>
+                <span class="legend-item"><span class="legend-move-tag">WALK</span>Movement mode</span>
               </div>
             </div>
             <div class="archetype-info">
@@ -1545,6 +1705,7 @@
           <div class="archetype-slide">
             <div class="archetype-map-col">
               <div class="minimap">
+                <span class="mm-move-tag">JUMP</span>
                 <div class="mm-corridor" style="left: 90px; top: 92px; width: 130px; height: 10px;"></div>
                 <div class="mm-room" style="left: 20px; top: 65px; width: 70px; height: 65px;"></div>
                 <div class="mm-room" style="left: 220px; top: 65px; width: 70px; height: 65px;"></div>
@@ -1561,6 +1722,7 @@
                 <span class="legend-item"><span class="legend-swatch" style="background: var(--accent-orange);"></span>Item</span>
                 <span class="legend-item"><span class="legend-swatch" style="background: none; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--fg-heading);"></span>Start</span>
                 <span class="legend-item"><span style="color: var(--accent-lime); font-size: 0.9em;">&#9733;</span>Goal</span>
+                <span class="legend-item"><span class="legend-move-tag">WALK</span>Movement mode</span>
               </div>
             </div>
             <div class="archetype-info">
@@ -1581,6 +1743,7 @@
           <div class="archetype-slide">
             <div class="archetype-map-col">
               <div class="minimap">
+                <span class="mm-move-tag">WALK</span>
                 <div class="mm-corridor" style="left: 65px; top: 95px; width: 170px; height: 10px;"></div>
                 <div class="mm-corridor" style="left: 35px; top: 20px; width: 10px; height: 55px;"></div>
                 <div class="mm-corridor" style="left: 40px; top: 15px; width: 215px; height: 10px;"></div>
@@ -1599,6 +1762,7 @@
                 <span class="legend-item"><span class="legend-swatch" style="background: var(--accent-orange);"></span>Item</span>
                 <span class="legend-item"><span class="legend-swatch" style="background: none; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--fg-heading);"></span>Start</span>
                 <span class="legend-item"><span style="color: var(--accent-lime); font-size: 0.9em;">&#9733;</span>Goal</span>
+                <span class="legend-item"><span class="legend-move-tag">WALK</span>Movement mode</span>
               </div>
             </div>
             <div class="archetype-info">
@@ -1619,6 +1783,7 @@
           <div class="archetype-slide">
             <div class="archetype-map-col">
               <div class="minimap">
+                <span class="mm-move-tag">JUMP</span>
                 <div class="mm-corridor" style="left: 65px; top: 75px; width: 170px; height: 8px;"></div>
                 <div class="mm-corridor" style="left: 65px; top: 142px; width: 170px; height: 8px;"></div>
                 <div class="mm-room" style="left: 15px; top: 70px; width: 50px; height: 85px;"></div>
@@ -1637,6 +1802,7 @@
                 <span class="legend-item"><span class="legend-swatch" style="background: var(--accent-orange);"></span>Item</span>
                 <span class="legend-item"><span class="legend-swatch" style="background: none; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--fg-heading);"></span>Start</span>
                 <span class="legend-item"><span style="color: var(--accent-lime); font-size: 0.9em;">&#9733;</span>Goal</span>
+                <span class="legend-item"><span class="legend-move-tag">WALK</span>Movement mode</span>
               </div>
             </div>
             <div class="archetype-info">
@@ -1657,6 +1823,7 @@
           <div class="archetype-slide">
             <div class="archetype-map-col">
               <div class="minimap">
+                <span class="mm-move-tag">WALK</span>
                 <div class="mm-corridor" style="left: 40px; top: 20px; width: 220px; height: 8px;"></div>
                 <div class="mm-corridor" style="left: 252px; top: 20px; width: 8px; height: 160px;"></div>
                 <div class="mm-corridor" style="left: 40px; top: 172px; width: 220px; height: 8px;"></div>
@@ -1674,6 +1841,7 @@
                 <span class="legend-item"><span class="legend-swatch" style="background: var(--accent-orange);"></span>Item</span>
                 <span class="legend-item"><span class="legend-swatch" style="background: none; width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid var(--fg-heading);"></span>Start</span>
                 <span class="legend-item"><span style="color: var(--accent-lime); font-size: 0.9em;">&#9733;</span>Goal</span>
+                <span class="legend-item"><span class="legend-move-tag">WALK</span>Movement mode</span>
               </div>
             </div>
             <div class="archetype-info">
@@ -1921,6 +2089,30 @@
           </div>
         </section>
 
+        <!-- 9b. Movement (movement mode material -- inserted after Camera & Perspective; "9b" keeps the 14-section numbering intact) -->
+        <section
+          class="section-slide"
+          data-movement="7"
+          data-movement-name="One Concept, Start to Finish"
+        >
+          <div class="section-header">
+            <span class="section-badge">9b</span>
+            <h2 class="title-highlight" style="--divider-color: var(--accent-cyan);">Movement</h2>
+          </div>
+          <p class="section-example">Walk + a short hop; slower while carrying. Precedent: <em>Untitled Goose Game</em> (grounded, carrying objects). The hero&rsquo;s double-jump happens in the background layer. You watch it, but you never have it. So gaps are blockers, and corridors and doors are the level.</p>
+          <div class="move-panel" style="max-width: 280px;">
+            <svg viewBox="0 0 280 170" preserveAspectRatio="xMidYMid meet">
+              <rect x="0" y="140" width="80" height="20" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+              <rect x="140" y="120" width="70" height="40" fill="#2a2a32" stroke="#e8e8ec" stroke-width="2" />
+              <path d="M40,130 Q70,105 100,150" fill="none" stroke="#e8e8ec" stroke-width="2.5" stroke-dasharray="4 4" />
+              <path d="M95,145 L107,157 M107,145 L95,157" stroke="#ff2bd6" stroke-width="3" />
+              <polygon points="25,120 25,140 48,130" fill="#e8e8ec" />
+              <rect x="50" y="116" width="11" height="11" fill="#ff8c1a" transform="rotate(45 55.5 121.5)" />
+            </svg>
+            <span class="panel-caption">Carrying: &minus;speed</span>
+          </div>
+        </section>
+
         <!-- 46. 10. Level Sketch -->
         <section
           class="section-slide"
@@ -2084,6 +2276,7 @@
             <h2>What&rsquo;s on the Ticket</h2>
             <div class="checklist-grid">
               <div class="checklist-item fragment"><span class="box">&#9744;</span>Character &amp; verbs</div>
+              <div class="checklist-item fragment"><span class="box">&#9744;</span>Movement mode + precedent</div>
               <div class="checklist-item fragment"><span class="box">&#9744;</span>Rooms &amp; map</div>
               <div class="checklist-item fragment"><span class="box">&#9744;</span>Gates &amp; keys</div>
               <div class="checklist-item fragment"><span class="box">&#9744;</span>Items</div>
@@ -2105,6 +2298,7 @@
           <div class="doc-card">
             <div class="doc-title">Dev Ticket &mdash; Reset</div>
             <div class="field"><span class="field-label">CHARACTER</span><span class="field-value">Caretaker (carry, lock, sweep, talk / can&rsquo;t attack)</span></div>
+            <div class="field"><span class="field-label">MOVEMENT</span><span class="field-value">Walk + short hop, slowed while carrying &middot; precedent: <em>Untitled Goose Game</em></span></div>
             <div class="field"><span class="field-label">ROOMS</span><span class="field-value">3 (Hall, Armory, Kitchen)</span></div>
             <div class="mini-map-embed">
               <div class="minimap" style="width: 260px; height: 120px;">
@@ -2171,7 +2365,7 @@
             <p class="recap-line fragment" style="color: var(--accent-cyan);">I&rsquo;m your developer.</p>
             <p class="recap-line fragment" style="color: var(--accent-lime);">Design inside the menu.</p>
             <p class="recap-line fragment" style="color: var(--accent-magenta);">Build at least one hinge.</p>
-            <p class="recap-line fragment" style="color: var(--accent-orange);">Character first.</p>
+            <p class="recap-line fragment" style="color: var(--accent-orange);">Character first. Movement before the map.</p>
             <p class="recap-line fragment" style="color: var(--accent-violet);">Familiar shape, unfamiliar character.</p>
             <p class="recap-line fragment" style="color: var(--accent-cyan);">Spec it on the ticket.</p>
           </div>
